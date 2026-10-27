@@ -1,0 +1,5 @@
+# Firebase service account keys must never be committed.
+*service-account*.json
+*-firebase-adminsdk-*.json
+.DS_Store
+Thumbs.db
