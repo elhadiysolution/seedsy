@@ -41,7 +41,7 @@ var CLIENT_KINDS = ['tasks', 'entries'];
  * 3. Project Settings → set the time zone to yours, so "due today" and the reminder hour match your day.
  * 4. Run `sendTestPush` to check, then run `installDailyReminder` once.
  */
-var APP_URL = '';        // Where the app is hosted, ending in "/", e.g. https://you.github.io/little-bloom/
+var APP_URL = 'https://elhadiysolution.github.io/seedsy/';  // Where the app is hosted, ending in "/", e.g. https://you.github.io/little-bloom/
 var REMINDER_HOUR = 8;   // 0–23, in the script time zone.
 
 /* ---------- web app entry points ---------- */
