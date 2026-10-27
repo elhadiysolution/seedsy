@@ -926,10 +926,14 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     if (!messaging) {
       if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
       messaging = firebase.messaging();
-      // While the app is open, pushes arrive here instead of as a system notification.
+      // While the app is open, pushes arrive here instead of going to the phone; show them there anyway.
       messaging.onMessage(function (payload) {
         var n = payload.notification || {};
-        toast(n.body || n.title || 'Reminder');
+        if (swReg && Notification.permission === 'granted') {
+          swReg.showNotification(n.title || 'Little Bloom', { body: n.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png' });
+        } else {
+          toast(n.body || n.title || 'Reminder');
+        }
       });
     }
     return messaging;
@@ -1876,7 +1880,13 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   if (!localOK) toast('Storage is blocked. Changes will be lost.');
   connectSheet();
   renderBell();
-  registerWorker();
+  registerWorker().then(function (reg) {
+    // Listen for pushes while open, and re-register in case the phone's push token has changed.
+    if (!reg || !remindersOn() || !pushReady()) return;
+    getPushToken(reg).then(function (token) {
+      if (token) return sheetCall({ action: 'register', device: { token: token, ua: navigator.userAgent.slice(0, 200) } });
+    }).catch(function () {});
+  });
 })();
 </script>
 
