@@ -208,11 +208,14 @@ h1 em{font-style:normal; color:var(--rose)}
 .stack{display:grid; gap:18px; min-width:0}
 .field{display:grid; gap:8px; min-width:0}
 .field-label{margin:0; font-weight:800; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
-input[type="text"], input[type="date"], select, textarea{
+input[type="text"], input[type="date"], input[type="time"], select, textarea{
   width:100%; min-width:0; font:inherit; font-size:1rem; color:var(--ink); background:var(--surface-2);
   border:1.5px solid var(--line); border-radius:14px; padding:11px 14px; transition:border-color .2s, background .2s}
-input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus{border-color:var(--rose); background:var(--surface); outline:none}
-input[type="text"]:focus-visible, input[type="date"]:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--rose-soft); outline-offset:0}
+input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus, select:focus, textarea:focus{border-color:var(--rose); background:var(--surface); outline:none}
+input[type="text"]:focus-visible, input[type="date"]:focus-visible, input[type="time"]:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--rose-soft); outline-offset:0}
+.time-row{display:flex; align-items:center; gap:10px}
+.time-row label{font-weight:700; font-size:.86rem; color:var(--muted); flex:none}
+.time-row input{max-width:160px; padding:8px 12px}
 .title-in{font-size:1.06rem; padding:13px 16px}
 textarea{resize:vertical; min-height:140px; line-height:1.5}
 .chip-group{display:flex; flex-wrap:wrap; gap:6px}
@@ -538,6 +541,13 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
               </div>
               <label class="sr-only" for="taskDue">Due date</label>
               <input id="taskDue" type="date" hidden>
+              <div class="time-row">
+                <label for="taskTime">Finish by</label>
+                <input id="taskTime" type="time">
+                <button type="button" class="icon-btn" id="timeClear" aria-label="Clear finish time" hidden>
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+                </button>
+              </div>
             </div>
             <div class="field">
               <span class="field-label" id="impLbl">Priority</span>
@@ -774,7 +784,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     source: 'local', mode: 'local',
     view: 'garden', filter: 'all', jFilter: 'all',
     editingId: null, confirmTask: null, confirmEntry: null, confirmClear: false,
-    form: { imp: 'med', effort: 'some', mins: 30, due: '' },
+    form: { imp: 'med', effort: 'some', mins: 30, due: '', time: '' },
     touched: false, guessed: false, sizeOpen: false, dateOpen: false,
     entryType: 'feel', mood: 'calm', lastPrompt: '',
     focusTaskId: '', justPlanted: null, justWritten: null
@@ -783,8 +793,18 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   function validTask(t) { return t && typeof t.id === 'string' && typeof t.title === 'string'; }
   function validEntry(e) { return e && typeof e.id === 'string' && typeof e.text === 'string'; }
   function plainTask(t) {
-    return { id: t.id, title: String(t.title).slice(0, 140), due: t.due || '', imp: t.imp || 'med', mins: Number(t.mins) || 30,
+    var due = t.due || '';
+    var time = /^\d{2}:\d{2}$/.test(t.time) ? t.time : '';
+    return { id: t.id, title: String(t.title).slice(0, 140), due: due, time: time, endAt: endAtOf(due, time),
+      imp: t.imp || 'med', mins: Number(t.mins) || 30,
       effort: t.effort || 'some', done: !!t.done, doneAt: t.doneAt || null, createdAt: t.createdAt || Date.now() };
+  }
+  // The finish moment in this phone's time zone, so the server can push without knowing where you are.
+  function endAtOf(due, time) {
+    if (!due || !time) return null;
+    var d = parseYMD(due), p = time.split(':').map(Number);
+    d.setHours(p[0], p[1], 0, 0);
+    return d.getTime();
   }
   function plainEntry(e) {
     return { id: e.id, type: e.type === 'manifest' ? 'manifest' : 'feel', mood: e.mood || null, text: String(e.text).slice(0, 2000), createdAt: e.createdAt || Date.now() };
@@ -848,7 +868,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   }
   function cloudWrite(kind, id, op) {
     if (state.mode !== 'cloud' || !cloud) return;
-    var body = op.del ? { action: 'delete', kind: kind, id: id } : { action: 'upsert', kind: kind, item: op.data };
+    var body = op.del ? { action: 'delete', kind: kind, id: id } : { action: 'upsert', kind: kind, item: op.data, notify: !!op.notify };
     var run = function () { return sheetCall(body); };
     enqueue(kind + '/' + id, function () {
       return run().catch(function (e) {
@@ -968,12 +988,13 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
 
 
   /* ---------- data ops ---------- */
-  function upsertTask(t) {
+  // `notify` asks the server to push "new task" to every phone with reminders on.
+  function upsertTask(t, notify) {
     t = plainTask(t);
     var i = state.tasks.findIndex(function (x) { return x.id === t.id; });
     if (i >= 0) state.tasks[i] = t; else state.tasks.push(t);
     saveLocal();
-    cloudWrite('tasks', t.id, { data: t });
+    cloudWrite('tasks', t.id, { data: t, notify: notify });
   }
   function deleteTask(id) {
     state.tasks = state.tasks.filter(function (x) { return x.id !== id; });
@@ -1009,14 +1030,25 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     if (d <= 6) return dt.toLocaleDateString('en-GB', { weekday: 'long' });
     return shortDate(dt);
   }
+  function timeText(hm) {
+    var p = hm.split(':').map(Number);
+    return new Date(2000, 0, 1, p[0], p[1]).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+  // "Today 3:00 PM", "Tomorrow", "Overdue 2 days"…
+  function dueText(t, a) {
+    var s = dueShort(a.days, t.due);
+    return s && t.time ? s + ' ' + timeText(t.time) : s;
+  }
 
   /* ---------- the sorting brain ---------- */
   var IMP_PTS = { low: 0, med: 15, high: 30 };
   function analyze(t) {
     var d = daysUntil(t.due);
+    var late = d !== null && (d < 0 || (!!t.endAt && t.endAt < Date.now()));
     var urg;
     if (d === null) urg = 10;
     else if (d < 0) urg = 100 + Math.min(-d * 5, 30);
+    else if (late) urg = 100;
     else if (d === 0) urg = 80;
     else if (d === 1) urg = 60;
     else if (d <= 3) urg = 45;
@@ -1032,12 +1064,14 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     if (size === 'quick') score += 6;
     if (t.effort === 'hard' && d !== null && d <= 3) score += 5;
     var level = score >= 70 ? 'first' : score >= 40 ? 'soon' : 'later';
-    return { score: score, level: level, size: size, days: d, mins: mins };
+    return { score: score, level: level, size: size, days: d, mins: mins, late: late };
   }
   function byScore(a, b) {
     if (b.a.score !== a.a.score) return b.a.score - a.a.score;
     var da = a.a.days === null ? 9999 : a.a.days, db = b.a.days === null ? 9999 : b.a.days;
     if (da !== db) return da - db;
+    var ea = a.t.endAt || Infinity, eb = b.t.endAt || Infinity;
+    if (ea !== eb) return ea < eb ? -1 : 1;
     return (a.t.createdAt || 0) - (b.t.createdAt || 0);
   }
 
@@ -1187,6 +1221,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   var titleIn = $('#taskTitle');
   var dueIn = $('#taskDue');
   var minsSel = $('#taskMins');
+  var timeIn = $('#taskTime');
   var QUICK_DUE = [0, 1, 7];
 
   function syncForm() {
@@ -1209,9 +1244,11 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     $('#sizeText').textContent = (state.guessed ? '≈ ' : '') + minsText(state.form.mins) + ' · ' + EFFORT_LABEL[state.form.effort].toLowerCase();
     $('#sizeBtn').setAttribute('aria-expanded', String(state.sizeOpen));
     $('#sizePanel').hidden = !state.sizeOpen;
+    timeIn.value = state.form.time || '';
+    $('#timeClear').hidden = !state.form.time;
   }
   function resetForm() {
-    state.form = { imp: 'med', effort: 'some', mins: 30, due: '' };
+    state.form = { imp: 'med', effort: 'some', mins: 30, due: '', time: '' };
     state.touched = false; state.guessed = false; state.editingId = null; state.sizeOpen = false; state.dateOpen = false;
     titleIn.value = '';
     $('#formError').textContent = '';
@@ -1251,25 +1288,34 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   });
   $('#sizeBtn').addEventListener('click', function () { state.sizeOpen = !state.sizeOpen; syncForm(); });
   $('#cancelEdit').addEventListener('click', resetForm);
+  timeIn.addEventListener('change', function () { state.form.time = timeIn.value; syncForm(); });
+  $('#timeClear').addEventListener('click', function () { state.form.time = ''; syncForm(); timeIn.focus(); });
 
   var BLOOM_MSGS = ['Bloomed!', 'Nice work.', 'One less thing.', 'Well done.'];
+
+  // A finish time with no date means the next time that clock time comes round: today, or tomorrow if it has passed.
+  function dueForTime(due, time) {
+    if (due || !time) return due;
+    return endAtOf(todayStr(), time) > Date.now() ? todayStr() : addDays(1);
+  }
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var title = titleIn.value.trim();
     if (!title) { $('#formError').textContent = 'Name your task first.'; titleIn.focus(); return; }
     $('#formError').textContent = '';
+    var f = state.form;
+    var fields = { title: title, due: dueForTime(f.due, f.time), time: f.time, imp: f.imp, mins: f.mins, effort: f.effort };
     if (state.editingId) {
       var old = state.tasks.find(function (x) { return x.id === state.editingId; });
       if (old) {
-        upsertTask(Object.assign({}, old, { title: title, due: state.form.due, imp: state.form.imp, mins: state.form.mins, effort: state.form.effort }));
+        upsertTask(Object.assign({}, old, fields));
         state.justPlanted = old.id;
         toast('Updated.');
       }
     } else {
-      var t = { id: makeId('t_'), title: title, due: state.form.due, imp: state.form.imp, mins: state.form.mins, effort: state.form.effort,
-        done: false, doneAt: null, createdAt: Date.now() };
-      upsertTask(t);
+      var t = Object.assign({ id: makeId('t_'), done: false, doneAt: null, createdAt: Date.now() }, fields);
+      upsertTask(t, true);
       state.justPlanted = t.id;
       if (state.filter === 'done') state.filter = 'all';
       toast('Planted.');
@@ -1281,7 +1327,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   function startEdit(t) {
     state.editingId = t.id;
     state.touched = true; state.guessed = false; state.sizeOpen = false;
-    state.form = { imp: t.imp, effort: t.effort, mins: t.mins, due: t.due || '' };
+    state.form = { imp: t.imp, effort: t.effort, mins: t.mins, due: t.due || '', time: t.time || '' };
     state.dateOpen = !!t.due && !QUICK_DUE.some(function (n) { return addDays(n) === t.due; });
     titleIn.value = t.title;
     $('#titleLbl').textContent = 'Editing';
@@ -1313,8 +1359,8 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     if (t.done) {
       bits.push(isToday(t.doneAt) ? 'Done today' : 'Done ' + shortDate(new Date(t.doneAt || Date.now())));
     } else {
-      var due = dueShort(a.days, t.due);
-      if (due) bits.push(a.days < 0 ? '<span class="overdue">' + esc(due) + '</span>' : esc(due));
+      var due = dueText(t, a);
+      if (due) bits.push(a.late ? '<span class="overdue">' + esc(due) + '</span>' : esc(due));
       bits.push(esc(minsText(a.mins)));
     }
     var cls = 'task' + (t.done ? ' is-done' : '') + (ex ? ' is-example' : '') + (state.justPlanted === t.id ? ' is-new' : '');
@@ -1347,7 +1393,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
       return;
     }
     var top = open[0];
-    var parts = [dueShort(top.a.days, top.t.due) || 'No due date', minsText(top.a.mins)];
+    var parts = [dueText(top.t, top.a) || 'No due date', minsText(top.a.mins)];
     if (top.t.imp === 'high') parts.push('High priority');
     spot.innerHTML = deco +
       '<p class="eyebrow">Start here' + (ex ? ' · sample' : '') + '</p>' +
