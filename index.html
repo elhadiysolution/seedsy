@@ -187,6 +187,7 @@ button{font-family:inherit}
 .bell{width:42px; height:42px; background:var(--surface); border-color:var(--line); box-shadow:var(--shadow)}
 .bell[aria-pressed="true"]{background:var(--rose-soft); color:var(--rose)}
 .bell[aria-pressed="true"] svg{fill:currentColor}
+.music[aria-pressed="true"] svg path{fill:none}
 @media (max-width:640px){
   .top-right{width:100%}
   .nav{flex:1}
@@ -510,6 +511,9 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
         <button type="button" data-view="focus">Focus</button>
         <button type="button" data-view="journal">Journal</button>
       </nav>
+      <button type="button" class="icon-btn bell music" id="musicBtn" aria-pressed="false" aria-label="Turn music on">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+      </button>
       <button type="button" class="icon-btn bell" id="bellBtn" aria-pressed="false" aria-label="Turn on reminders" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
       </button>
@@ -638,6 +642,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
           <label class="sr-only" for="focusTask">Task to focus on</label>
           <select id="focusTask"></select>
           <div class="chip-group" role="group" aria-label="Session length" id="durations">
+            <button type="button" class="pick" data-min="5">5 min</button>
             <button type="button" class="pick" data-min="15">15 min</button>
             <button type="button" class="pick" data-min="25">25 min</button>
             <button type="button" class="pick" data-min="45">45 min</button>
@@ -678,6 +683,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
           <p class="time" id="timeLeft">25:00</p>
           <p class="timer-status" id="timerStatus" aria-live="polite"></p>
           <div class="timer-actions">
+            <button type="button" class="btn btn-primary" id="alarmStop" hidden>Stop alarm</button>
             <button type="button" class="btn btn-primary" id="timerStart">Start</button>
             <button type="button" class="btn btn-ghost" id="timerReset">Reset</button>
           </div>
@@ -987,7 +993,8 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   // Shown only when the app is in the background, e.g. the focus timer ends while you are in another app.
   function notifyLocal(title, body) {
     if (!swReg || !window.Notification || Notification.permission !== 'granted' || document.visibilityState === 'visible') return;
-    swReg.showNotification(title, { body: body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'littlebloom-local' });
+    swReg.showNotification(title, { body: body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: 'littlebloom-local',
+      vibrate: [400, 150, 400, 150, 400], requireInteraction: true });
   }
 
 
@@ -1619,12 +1626,37 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
         var t0 = audioCtx.currentTime + i * 0.18;
         o.type = 'sine'; o.frequency.value = f;
         g.gain.setValueAtTime(0.0001, t0);
-        g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.35, t0 + 0.03);
         g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.9);
         o.connect(g); g.connect(audioCtx.destination);
         o.start(t0); o.stop(t0 + 1);
       });
     } catch (e) {}
+  }
+
+  // The end-of-session alarm: chime + vibration every 2 s until stopped, giving up after ALARM_MAX_MS.
+  var ALARM_MAX_MS = 60000;
+  var alarm = { iv: null, until: 0 };
+  function ring() {
+    if (Date.now() > alarm.until) { stopAlarm(); return; }
+    chime();
+    if (navigator.vibrate) navigator.vibrate([400, 150, 400]);
+  }
+  function startAlarm() {
+    stopAlarm();
+    alarm.until = Date.now() + ALARM_MAX_MS;
+    ring();
+    alarm.iv = setInterval(ring, 2000);
+    $('#alarmStop').hidden = false;
+    $('#timerStart').hidden = true;
+    $('#alarmStop').focus();
+  }
+  function stopAlarm() {
+    clearInterval(alarm.iv);
+    alarm.iv = null;
+    if (navigator.vibrate) navigator.vibrate(0);
+    $('#alarmStop').hidden = true;
+    $('#timerStart').hidden = false;
   }
   function tick() {
     timer.remaining = Math.max(0, Math.ceil((timer.endAt - Date.now()) / 1000));
@@ -1666,7 +1698,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     timer.running = false; timer.finished = true; timer.remaining = 0;
     var n = getFocusCount() + 1;
     if (!lsSet(FOCUS_KEY, JSON.stringify({ date: todayStr(), count: n }))) sessionFocus++;
-    chime();
+    startAlarm();
     $('#timerStatus').textContent = 'A flower grew. Well done.';
     toast('Session done.');
     notifyLocal('A flower grew 🌸', 'Your focus session is done. Well done.');
@@ -1686,7 +1718,8 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     $('#grownText').textContent = n === 0 ? 'No flowers yet today' : n + (n === 1 ? ' flower' : ' flowers') + ' today';
   }
   $('#timerStart').addEventListener('click', function () { if (timer.running) pauseTimer(); else startTimer(); });
-  $('#timerReset').addEventListener('click', resetTimer);
+  $('#timerReset').addEventListener('click', function () { stopAlarm(); resetTimer(); });
+  $('#alarmStop').addEventListener('click', function () { stopAlarm(); $('#timerStart').focus(); });
   $('#durations').addEventListener('click', function (e) {
     var b = e.target.closest('[data-min]');
     if (!b || timer.running) return;
@@ -1702,6 +1735,81 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     render();
   });
   document.addEventListener('visibilitychange', function () { if (!document.hidden && timer.running) tick(); });
+
+  /* ---------- background music ---------- */
+  // A soft music-box loop made with Web Audio, so there is no file to download.
+  // Browsers only allow sound after a tap, so it starts on the first one (unless turned off with the button).
+  var MUSIC_KEY = 'littlebloom.music';
+  var MUSIC_VOL = 0.07;
+  var CHORDS = [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]];  // C, Am, F, G as MIDI notes
+  var BAR = 3.2, STEPS = 8;  // seconds per chord, notes per chord
+  var music = { iv: null, gain: null, next: 0, step: 0, resume: false };
+  function hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+  function note(m, t, len, vol, type) {
+    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = type; o.frequency.value = hz(m);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + (type === 'sine' ? 0.8 : 0.01));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    o.connect(g); g.connect(music.gain);
+    o.start(t); o.stop(t + len + 0.05);
+  }
+  // Schedules about a second ahead each time it runs, so timer jitter never makes the music stutter.
+  function scheduleMusic() {
+    while (music.next < audioCtx.currentTime + 1) {
+      var chord = CHORDS[Math.floor(music.step / STEPS) % CHORDS.length], i = music.step % STEPS, t = music.next;
+      if (i === 0) chord.forEach(function (m) { note(m - 12, t, BAR + 0.6, 0.18, 'sine'); });
+      if (i % 2 === 0 || Math.random() < 0.4) {
+        note(chord[Math.floor(Math.random() * 3)] + 12 + (Math.random() < 0.3 ? 12 : 0), t, 1.4, 0.35, 'triangle');
+      }
+      music.step++;
+      music.next += BAR / STEPS;
+    }
+  }
+  function startMusic() {
+    ensureAudio();
+    if (!audioCtx || music.iv) return;
+    if (!music.gain) { music.gain = audioCtx.createGain(); music.gain.connect(audioCtx.destination); }
+    var now = audioCtx.currentTime;
+    music.gain.gain.cancelScheduledValues(now);
+    music.gain.gain.setValueAtTime(0.0001, now);
+    music.gain.gain.exponentialRampToValueAtTime(MUSIC_VOL, now + 2);
+    music.next = now + 0.1;
+    scheduleMusic();
+    music.iv = setInterval(scheduleMusic, 250);
+  }
+  function stopMusic() {
+    if (!music.iv) return;
+    clearInterval(music.iv);
+    music.iv = null;
+    var now = audioCtx.currentTime;
+    music.gain.gain.cancelScheduledValues(now);
+    music.gain.gain.setValueAtTime(music.gain.gain.value, now);
+    music.gain.gain.linearRampToValueAtTime(0, now + 0.4);
+  }
+  function renderMusicBtn() {
+    var b = $('#musicBtn'), on = !!music.iv;
+    b.setAttribute('aria-pressed', String(on));
+    b.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
+  }
+  $('#musicBtn').addEventListener('click', function () {
+    if (music.iv) { stopMusic(); lsSet(MUSIC_KEY, 'off'); } else { startMusic(); lsSet(MUSIC_KEY, 'on'); }
+    renderMusicBtn();
+  });
+  function firstTap(e) {
+    document.removeEventListener('click', firstTap, true);
+    document.removeEventListener('keydown', firstTap, true);
+    if (e.target.closest && e.target.closest('#musicBtn')) return;
+    if (lsGet(MUSIC_KEY) !== 'off') { startMusic(); renderMusicBtn(); }
+  }
+  document.addEventListener('click', firstTap, true);
+  document.addEventListener('keydown', firstTap, true);
+  // Quiet while the app is in the background; back on when you return.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { music.resume = !!music.iv; stopMusic(); }
+    else if (music.resume) { music.resume = false; startMusic(); }
+    renderMusicBtn();
+  });
 
   /* ---------- journal ---------- */
   var MOODS = [
