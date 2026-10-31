@@ -1,7 +1,7 @@
 /**
  * Little Bloom — Google Sheets backend (Apps Script web app).
  *
- * Each "kind" (tasks, entries) is a tab. Row 1 holds the headers, one row per item, keyed by `id`.
+ * Each "kind" (tasks, entries, wedding) is a tab. Row 1 holds the headers, one row per item, keyed by `id`.
  * The sheet is dynamic: if the app sends a field the sheet has never seen, a new column is added for it,
  * so you can grow the data model in index.html without touching this file.
  *
@@ -30,6 +30,12 @@ var SCHEMA = {
   entries: {
     id: 'string', type: 'string', mood: 'string', text: 'string', createdAt: 'number'
   },
+  // One `settings` row (wedding date), a `goal` row per checklist item with its estimated `cost`,
+  // and a `saving` row per amount put away: `who` saved it, for which `month` ("yyyy-MM").
+  wedding: {
+    id: 'string', type: 'string', title: 'string', cat: 'string', cost: 'number', done: 'boolean', doneAt: 'number',
+    createdAt: 'number', date: 'string', who: 'string', amount: 'number', month: 'string', note: 'string'
+  },
   // Phones that turned on reminders. `id` is the FCM registration token.
   devices: {
     id: 'string', ua: 'string', createdAt: 'number', lastSeen: 'number'
@@ -37,7 +43,7 @@ var SCHEMA = {
 };
 
 // Kinds the app may read and write directly. Devices only change through register/unregister.
-var CLIENT_KINDS = ['tasks', 'entries'];
+var CLIENT_KINDS = ['tasks', 'entries', 'wedding'];
 
 /* ---------- reminders (Firebase Cloud Messaging) ----------
  * 1. Firebase console → Project settings → Service accounts → Generate new private key (downloads a JSON file).
@@ -70,7 +76,7 @@ function doPost(e) {
   try {
     switch (body.action) {
       case 'list':
-        return json_({ ok: true, tasks: readAll_('tasks'), entries: readAll_('entries') });
+        return json_({ ok: true, tasks: readAll_('tasks'), entries: readAll_('entries'), wedding: readAll_('wedding') });
       case 'upsert':
         checkKind_(body.kind);
         if (!body.item || typeof body.item.id !== 'string' || !body.item.id) return json_({ ok: false, error: 'bad_item' });

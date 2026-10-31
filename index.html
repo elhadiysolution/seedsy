@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Little Bloom Planner</title>
-<meta name="description" content="A gentle task garden, focus timer and journal.">
+<meta name="description" content="Plant Your Goals. Grow Together. A gentle task garden, focus timer, journal and wedding planner.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -175,9 +175,7 @@ button{font-family:inherit}
 .brand svg{width:40px; height:40px; color:var(--rose); --center:var(--sun); animation:spin 30s linear infinite}
 .brand-name{font-family:var(--font-display); font-size:1.5rem; line-height:1; margin:0}
 .brand-name span{color:var(--rose)}
-.save-state{display:flex; align-items:center; gap:6px; font-size:.74rem; font-weight:700; color:var(--muted); margin:4px 0 0}
-.save-state i{width:7px; height:7px; border-radius:50%; background:var(--leaf); display:inline-block}
-.save-state.warn i{background:var(--urgent)}
+.tagline{margin:4px 0 0; font-size:.76rem; font-weight:800; letter-spacing:.02em; color:var(--muted)}
 .nav{display:flex; gap:2px; background:var(--surface); border:1px solid var(--line); padding:4px; border-radius:999px; box-shadow:var(--shadow)}
 .nav button{border:0; background:transparent; font-weight:800; font-size:.92rem; line-height:1; color:var(--muted);
   padding:10px 16px; border-radius:999px; cursor:pointer; transition:background .2s, color .2s}
@@ -191,8 +189,9 @@ button{font-family:inherit}
 @media (max-width:640px){
   .top-right{width:100%}
   .nav{flex:1}
-  .nav button{flex:1; padding:11px 6px}
+  .nav button{flex:1; padding:11px 4px}
 }
+@media (max-width:420px){ .nav button{font-size:.8rem} }
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .page-head{display:grid; gap:4px; margin-block:10px 26px}
@@ -209,10 +208,10 @@ h1 em{font-style:normal; color:var(--rose)}
 .stack{display:grid; gap:18px; min-width:0}
 .field{display:grid; gap:8px; min-width:0}
 .field-label{margin:0; font-weight:800; font-size:.7rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
-input[type="text"], input[type="date"], input[type="time"], select, textarea{
+input[type="text"], input[type="number"], input[type="date"], input[type="time"], select, textarea{
   width:100%; min-width:0; font:inherit; font-size:1rem; color:var(--ink); background:var(--surface-2);
   border:1.5px solid var(--line); border-radius:14px; padding:11px 14px; transition:border-color .2s, background .2s}
-input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus, select:focus, textarea:focus{border-color:var(--rose); background:var(--surface); outline:none}
+input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, input[type="time"]:focus, select:focus, textarea:focus{border-color:var(--rose); background:var(--surface); outline:none}
 input[type="text"]:focus-visible, input[type="date"]:focus-visible, input[type="time"]:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--rose-soft); outline-offset:0}
 /* Two equal columns. iOS draws date/time inputs centred, with their own min width and no height when empty, so reset that. */
 .when-row{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px}
@@ -364,6 +363,11 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
 
 .timer-card{display:grid; gap:14px; justify-items:center; text-align:center; padding-top:24px}
 .timer-card select{max-width:320px}
+.custom-min{display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px}
+.custom-min[hidden]{display:none}
+.custom-min label{font-weight:700; font-size:.86rem; color:var(--muted)}
+.custom-min input{width:96px; text-align:center; padding:9px 10px}
+.custom-min .btn{padding:10px 18px}
 .grow{width:min(210px, 66%); height:auto; overflow:visible}
 .g-shadow{fill:var(--line)}
 .g-pot{fill:var(--lilac)} .g-rim{fill:var(--lilac-deep)} .g-soil{fill:var(--ink); opacity:.25}
@@ -421,6 +425,84 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
 .entry-actions .icon-btn{width:32px; height:32px}
 .entry-text{margin:6px 6px 0 0; font-family:var(--font-hand); font-size:1.45rem; line-height:1.22; white-space:pre-wrap; overflow-wrap:anywhere}
 .entry-confirm{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px; font-weight:800; font-size:.84rem}
+
+/* ---------- Wedding ---------- */
+/* Reads top to bottom: dashboard, the items that make the goal, then the monthly savings that pay for it. */
+.wed-page{display:grid; gap:34px; max-width:860px; margin-inline:auto}
+.sec-head{display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:10px 16px}
+.sec-title{margin:0; font-family:var(--font-display); font-weight:400; font-size:1.55rem; line-height:1.1}
+.sec-sub{margin:2px 0 0; color:var(--muted); font-size:.88rem}
+.wed-dash{background:linear-gradient(140deg, var(--surface), var(--rose-soft) 140%)}
+.wed-when{display:flex; align-items:center; gap:8px}
+.wed-when input{width:auto; min-height:40px; padding:7px 12px}
+/* Photo banner. Text sits on a dark fade so it stays readable on any photo, in light or dark theme. */
+.wed-hero{position:relative; overflow:hidden; max-width:860px; margin:4px auto 30px; border-radius:28px; background:var(--ink);
+  height:clamp(420px, 120vw, 520px); box-shadow:var(--shadow); isolation:isolate}
+@media (min-width:700px){ .wed-hero{height:440px} }
+.hero-slide{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:var(--pos, 50% 50%);
+  opacity:0; transform:scale(1.04); transition:opacity 1.2s ease, transform 6s ease}
+.hero-slide.is-on{opacity:1; transform:scale(1)}
+.hero-text{position:absolute; inset:auto 0 0 0; z-index:2; padding:80px 24px 46px; color:#fff;
+  background:linear-gradient(to top, rgba(30,14,32,.82), rgba(30,14,32,.45) 55%, transparent)}
+.hero-couple{margin:0; font-weight:800; font-size:.74rem; letter-spacing:.14em; text-transform:uppercase; color:#FFD9E6}
+.wed-hero h1{color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.35)}
+.wed-hero h1 em{color:#FFB3CC}
+.hero-date{margin:6px 0 0; font-weight:700; font-size:.95rem; opacity:.92}
+.hero-date:empty{display:none}
+.hero-count{display:inline-flex; margin:12px 0 0; padding:7px 14px; border-radius:999px; font-weight:800; font-size:.92rem;
+  background:rgba(255,255,255,.18); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.35)}
+.hero-count em{font-style:normal; color:#FFD3E1}
+.hero-nav{position:absolute; top:42%; z-index:3; width:38px; height:38px; display:grid; place-items:center; border-radius:50%; cursor:pointer;
+  border:1px solid rgba(255,255,255,.4); background:rgba(30,14,32,.35); color:#fff; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px)}
+.hero-nav:hover{background:rgba(30,14,32,.55)}
+.hero-nav svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round}
+.hero-nav.prev{left:12px} .hero-nav.next{right:12px}
+.hero-dots{position:absolute; z-index:3; left:0; right:0; bottom:16px; display:flex; justify-content:center; gap:4px}
+.hero-dots button{width:22px; height:22px; padding:0; border:0; background:transparent; cursor:pointer; display:grid; place-items:center}
+.hero-dots button::before{content:""; width:7px; height:7px; border-radius:999px; background:rgba(255,255,255,.55); transition:width .3s, background .3s}
+.hero-dots button[aria-current="true"]::before{width:20px; background:#fff}
+.stat-grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px}
+@media (min-width:760px){ .stat-grid{grid-template-columns:repeat(4, minmax(0,1fr))} }
+.stat{display:grid; align-content:start; gap:4px; padding:14px; border-radius:18px; background:var(--surface-2); border:1px solid var(--line); min-width:0}
+.stat-label{font-weight:800; font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.stat b{font-size:clamp(1.15rem, 3.6vw, 1.45rem); line-height:1.15; font-variant-numeric:tabular-nums; overflow-wrap:anywhere}
+.stat small{color:var(--muted); font-weight:700; font-size:.78rem; line-height:1.3}
+.stat-goal{background:var(--rose-soft); border-color:var(--rose-light)}
+.stat-goal b{color:var(--rose)}
+.stat-month{background:var(--leaf-soft); border-color:var(--sage)}
+.wed-bar{height:14px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); overflow:hidden}
+.wed-bar i{display:block; height:100%; width:var(--p, 0%); border-radius:inherit;
+  background:linear-gradient(90deg, var(--rose-light), var(--rose)); transition:width .6s ease}
+.wed-plan{margin:-6px 0 0; font-weight:700; font-size:.9rem}
+.month-card{display:grid; gap:8px; padding:16px 18px}
+.month-card.is-now{border-color:var(--rose-light)}
+.month-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+.month-head h3{margin:0; font-size:1.02rem; font-weight:800}
+.month-head h3 span{margin-left:6px; font-size:.7rem; font-weight:800; padding:2px 8px; border-radius:999px; background:var(--rose-soft); color:var(--rose); vertical-align:middle}
+.month-total{font-weight:800; font-size:1.1rem; font-variant-numeric:tabular-nums}
+.month-status{margin:0; font-weight:700; font-size:.86rem; color:var(--muted)}
+.month-status.ok{color:var(--leaf-ink)}
+.month-status.short{color:var(--urgent)}
+.wed-plan em{font-style:normal; color:var(--rose)}
+.wed-plan .muted{font-weight:600}
+.wed-people{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px}
+.wed-person{display:grid; gap:2px; padding:10px 12px; border-radius:16px; background:var(--surface-2); border:1px solid var(--line); min-width:0}
+.wed-person .who{display:flex; align-items:center; gap:6px; font-weight:800; font-size:.86rem}
+.wed-person b{font-size:1.1rem; font-variant-numeric:tabular-nums}
+.wed-person small{color:var(--muted); font-weight:700}
+.who-dot{width:26px; height:26px; flex:none; display:grid; place-items:center; border-radius:50%; background:var(--c); color:#fff; font-weight:800; font-size:.78rem}
+.wed-person .who-dot{width:20px; height:20px; font-size:.66rem}
+.wed-cheer{margin:0; padding:10px 12px; border-radius:14px; background:var(--leaf-soft); font-weight:700; font-size:.88rem}
+.wed-cheer:empty{display:none}
+.wed-hist{list-style:none; margin:0; padding:0; display:grid; gap:2px}
+.hist-item{display:grid; grid-template-columns:auto minmax(0,1fr) auto auto; align-items:center; gap:4px 10px; padding:8px 0; border-top:1px dashed var(--line)}
+.hist-item:first-child{border-top:0}
+.hist-main{margin:0; font-weight:800; font-size:.92rem}
+.hist-main span{color:var(--muted); font-weight:700}
+.hist-note{margin:1px 0 0; color:var(--muted); font-size:.82rem; overflow-wrap:anywhere}
+.hist-amt{font-weight:800; font-variant-numeric:tabular-nums}
+.hist-item .confirm{grid-column:1 / -1; justify-content:flex-end}
+.need-cost{color:var(--urgent); font-weight:800}
 
 /* ---------- Toast ---------- */
 .toast{position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); z-index:60; transform:translate(-50%, 24px); opacity:0;
@@ -524,7 +606,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
       <svg aria-hidden="true"><use href="#f-daisy"/></svg>
       <div>
         <p class="brand-name">Little <span>Bloom</span></p>
-        <p class="save-state" id="saveState"><i></i><span>Saved on this device</span></p>
+        <p class="tagline">Plant Your Goals. Grow Together.</p>
       </div>
     </div>
     <div class="top-right">
@@ -532,6 +614,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
         <button type="button" data-view="garden" aria-current="page">Garden</button>
         <button type="button" data-view="focus">Focus</button>
         <button type="button" data-view="journal">Journal</button>
+        <button type="button" data-view="wedding">Wedding</button>
       </nav>
       <button type="button" class="icon-btn bell music" id="musicBtn" aria-pressed="false" aria-label="Turn music on">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
@@ -676,7 +759,14 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
             <button type="button" class="pick" data-min="25">25 min</button>
             <button type="button" class="pick" data-min="45">45 min</button>
             <button type="button" class="pick" data-min="60">60 min</button>
+            <button type="button" class="pick" id="customMinBtn" aria-expanded="false" aria-controls="customMinRow">Custom</button>
           </div>
+          <form class="custom-min" id="customMinRow" novalidate hidden>
+            <label for="customMin">Minutes</label>
+            <input id="customMin" type="number" min="1" max="180" step="1" inputmode="numeric" placeholder="e.g. 40">
+            <button type="submit" class="btn btn-soft">Set</button>
+          </form>
+          <p class="form-error" id="customMinError" role="alert"></p>
           <svg class="grow" id="grow" viewBox="0 0 200 230" role="img" aria-label="A flower that grows while you focus">
             <ellipse class="g-shadow" cx="100" cy="216" rx="62" ry="8"/>
             <path class="g-pot" d="M64 174 h72 l-10 40 h-52 z"/>
@@ -767,6 +857,157 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
         </section>
       </div>
     </section>
+
+    <!-- ===================== WEDDING ===================== -->
+    <section class="view" id="view-wedding" aria-labelledby="weddingTitle" hidden>
+      <!-- Photo banner: crossfades every few seconds; the title, date and countdown sit on top. -->
+      <section class="wed-hero" id="wedHero" aria-roledescription="carousel" aria-label="Our photos">
+        <div class="hero-slides">
+          <img class="hero-slide is-on" src="images/wedding/photo-1.jpg" alt="Ammar and Fatimah at a clothing shop mirror" style="--pos:50% 38%" loading="lazy" decoding="async">
+          <img class="hero-slide" src="images/wedding/photo-2.jpg" alt="Ammar and Fatimah smiling in an eyewear shop mirror" style="--pos:50% 42%" loading="lazy" decoding="async">
+          <img class="hero-slide" src="images/wedding/photo-3.jpg" alt="Ammar and Fatimah on a picnic in the park" style="--pos:50% 40%" loading="lazy" decoding="async">
+          <img class="hero-slide" src="images/wedding/photo-4.jpg" alt="Ammar and Fatimah at Copthorne in the highlands" style="--pos:42% 22%" loading="lazy" decoding="async">
+          <img class="hero-slide" src="images/wedding/photo-5.jpg" alt="Ammar and Fatimah in front of a wall of pink flowers" style="--pos:50% 70%" loading="lazy" decoding="async">
+          <img class="hero-slide" src="images/wedding/photo-6.jpg" alt="Ammar and Fatimah wearing face masks" style="--pos:50% 45%" loading="lazy" decoding="async">
+        </div>
+        <div class="hero-text">
+          <p class="hero-couple" id="wedCouple">Ammar &amp; Fatimah</p>
+          <h1 id="weddingTitle">Our wedding <em>goals</em></h1>
+          <p class="hero-date" id="heroDate"></p>
+          <p class="hero-count" id="wedCount" aria-live="polite"></p>
+        </div>
+        <button type="button" class="hero-nav prev" data-hero="-1" aria-label="Previous photo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <button type="button" class="hero-nav next" data-hero="1" aria-label="Next photo">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <div class="hero-dots" id="heroDots" role="group" aria-label="Choose photo"></div>
+      </section>
+
+      <dialog class="modal" id="goalModal" aria-labelledby="goalModalTitle">
+        <form id="goalForm" class="stack modal-body" autocomplete="off" novalidate>
+          <div class="modal-top">
+            <h2 class="modal-title" id="goalModalTitle">New wedding item</h2>
+            <button type="button" class="icon-btn" data-close aria-label="Close">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+            </button>
+          </div>
+          <div class="field">
+            <label class="field-label" for="goalTitle">Item</label>
+            <input id="goalTitle" class="title-in" type="text" maxlength="140" placeholder="e.g. Book the venue">
+          </div>
+          <div class="when-row">
+            <div class="field">
+              <label class="field-label" for="goalCost">Estimated cost (RM)</label>
+              <input id="goalCost" type="number" min="0" step="any" inputmode="decimal" placeholder="5000">
+            </div>
+            <div class="field">
+              <label class="field-label" for="goalCat">Category</label>
+              <select id="goalCat"></select>
+            </div>
+          </div>
+          <p class="form-error" id="goalError" role="alert"></p>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit" id="goalSave">Add item</button>
+            <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog class="modal" id="savingModal" aria-labelledby="savingModalTitle">
+        <form id="savingForm" class="stack modal-body" autocomplete="off" novalidate>
+          <div class="modal-top">
+            <h2 class="modal-title" id="savingModalTitle">Add savings</h2>
+            <button type="button" class="icon-btn" data-close aria-label="Close">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+            </button>
+          </div>
+          <div class="field">
+            <span class="field-label" id="whoLbl">Who saved?</span>
+            <div class="chip-group" role="group" aria-labelledby="whoLbl" id="savingWho"></div>
+          </div>
+          <div class="when-row">
+            <div class="field">
+              <label class="field-label" for="savingAmount">Amount (RM)</label>
+              <input id="savingAmount" type="number" min="0" step="any" inputmode="decimal" placeholder="500">
+            </div>
+            <div class="field">
+              <label class="field-label" for="savingMonth">Month</label>
+              <select id="savingMonth"></select>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="savingNote">Note <span class="muted">(optional)</span></label>
+            <input id="savingNote" type="text" maxlength="140" placeholder="e.g. Part of my bonus">
+          </div>
+          <p class="form-error" id="savingError" role="alert"></p>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Add savings</button>
+            <button class="btn btn-ghost" type="button" data-close>Cancel</button>
+          </div>
+        </form>
+      </dialog>
+
+      <div class="wed-page">
+        <!-- 1. Dashboard: the ultimate goal comes from the items below, the saved amount from the monthly savings -->
+        <section class="card stack wed-dash" aria-labelledby="dashLbl">
+          <div class="sec-head">
+            <h2 class="sec-title" id="dashLbl">Dashboard</h2>
+            <div class="wed-when">
+              <label class="field-label" for="wedDate">Wedding date</label>
+              <input id="wedDate" type="date">
+            </div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat stat-goal"><span class="stat-label">Ultimate goal</span><b id="statGoal">RM 0</b><small id="statGoalSub"></small></div>
+            <div class="stat"><span class="stat-label">Saved so far</span><b id="statSaved">RM 0</b><small id="statSavedSub"></small></div>
+            <div class="stat"><span class="stat-label">Still to save</span><b id="statLeft">RM 0</b><small id="statLeftSub"></small></div>
+            <div class="stat stat-month"><span class="stat-label">Must save each month</span><b id="statMonth">–</b><small id="statMonthSub"></small></div>
+          </div>
+          <div class="wed-bar" id="wedBar" role="progressbar" aria-label="Saved towards the ultimate goal" aria-valuemin="0" aria-valuemax="100"><i></i></div>
+          <p class="wed-plan" id="wedPlan"></p>
+          <div class="wed-people" id="wedPeople"></div>
+        </section>
+
+        <!-- 2. Items: each estimated cost adds up to the ultimate goal -->
+        <section class="stack" aria-labelledby="itemsLbl">
+          <div class="sec-head">
+            <div>
+              <h2 class="sec-title" id="itemsLbl">Wedding items</h2>
+              <p class="sec-sub">Each item's estimated cost adds up to your ultimate goal.</p>
+            </div>
+            <button type="button" class="btn btn-primary add-btn" id="addGoalBtn" aria-haspopup="dialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add item
+            </button>
+          </div>
+          <div class="bed-head">
+            <div class="tabs" role="group" aria-label="Show items" id="wFilters">
+              <button type="button" class="tab" data-wfilter="todo">To do<span class="n" data-wcount="todo">0</span></button>
+              <button type="button" class="tab" data-wfilter="done">Done<span class="n" data-wcount="done">0</span></button>
+              <button type="button" class="tab" data-wfilter="all">All<span class="n" data-wcount="all">0</span></button>
+            </div>
+          </div>
+          <div class="stack" id="wedList"></div>
+          <div class="empty" id="wedEmpty" hidden></div>
+        </section>
+
+        <!-- 3. Monthly savings: what each of us put away, month by month -->
+        <section class="stack" aria-labelledby="monthsLbl">
+          <div class="sec-head">
+            <div>
+              <h2 class="sec-title" id="monthsLbl">Monthly savings</h2>
+              <p class="sec-sub">Every month, let us know how much you saved.</p>
+            </div>
+            <button type="button" class="btn btn-primary add-btn" id="addSavingBtn" aria-haspopup="dialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add savings
+            </button>
+          </div>
+          <p class="wed-cheer" id="wedCheer" aria-live="polite"></p>
+          <div class="stack" id="wedMonths"></div>
+        </section>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -815,8 +1056,9 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { localOK = false; return false; } }
 
   var state = {
-    tasks: [], entries: [],
-    source: 'local', mode: 'local',
+    tasks: [], entries: [], wedding: [],
+    source: 'local', mode: 'local', weddingLinked: false,
+    wFilter: 'todo', confirmWed: null, justAdded: null,
     view: 'garden', filter: 'all', jFilter: 'all',
     editingId: null, confirmTask: null, confirmEntry: null, confirmClear: false,
     form: { imp: 'med', effort: 'some', mins: 30, due: '', time: '' },
@@ -844,6 +1086,32 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   function plainEntry(e) {
     return { id: e.id, type: e.type === 'manifest' ? 'manifest' : 'feel', mood: e.mood || null, text: String(e.text).slice(0, 2000), createdAt: e.createdAt || Date.now() };
   }
+  // The wedding tab holds one `settings` row (the date), a `goal` row per checklist item with its estimated cost,
+  // and a `saving` row per amount one of the couple put away for a month.
+  var WED_SETTINGS = 'settings';
+  var PARTNERS = [
+    { k: 'ammar', name: 'Ammar', c: 'var(--sky)' },
+    { k: 'fatimah', name: 'Fatimah', c: 'var(--rose)' }
+  ];
+  function validWedding(w) {
+    return w && typeof w.id === 'string' && (w.id === WED_SETTINGS || w.type === 'saving' || typeof w.title === 'string');
+  }
+  function money(v) { return v === '' || v === null || v === undefined || isNaN(Number(v)) ? null : Math.max(0, Math.round(Number(v) * 100) / 100); }
+  function plainWedding(w) {
+    if (w.id === WED_SETTINGS) {
+      return { id: WED_SETTINGS, type: 'settings', date: /^\d{4}-\d{2}-\d{2}$/.test(w.date) ? w.date : '' };
+    }
+    if (w.type === 'saving') {
+      return { id: w.id, type: 'saving', who: PARTNERS.some(function (p) { return p.k === w.who; }) ? w.who : PARTNERS[0].k,
+        amount: money(w.amount) || 0, month: /^\d{4}-\d{2}$/.test(w.month) ? w.month : todayStr().slice(0, 7),
+        note: String(w.note || '').slice(0, 140), createdAt: w.createdAt || Date.now() };
+    }
+    // `cost` stays null until it is keyed in, so starter goals can show "Add cost" instead of a fake RM 0.
+    return { id: w.id, type: 'goal', title: String(w.title).slice(0, 140), cat: w.cat || 'other', cost: money(w.cost),
+      done: !!w.done, doneAt: w.doneAt || null, createdAt: w.createdAt || Date.now() };
+  }
+  var PLAIN = { tasks: plainTask, entries: plainEntry, wedding: plainWedding };
+  var VALID = { tasks: validTask, entries: validEntry, wedding: validWedding };
 
   (function loadLocal() {
     if (lsSet('littlebloom.test', '1')) { try { localStorage.removeItem('littlebloom.test'); } catch (e) {} }
@@ -853,12 +1121,15 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
       var d = JSON.parse(raw);
       if (Array.isArray(d.tasks)) state.tasks = d.tasks.filter(validTask).map(plainTask);
       if (Array.isArray(d.entries)) state.entries = d.entries.filter(validEntry).map(plainEntry);
+      if (Array.isArray(d.wedding)) state.wedding = d.wedding.filter(validWedding).map(plainWedding);
       if (d.source === 'cloud') state.source = 'cloud';
+      state.weddingLinked = !!d.weddingLinked;
     } catch (e) {}
   })();
 
   function saveLocal() {
-    lsSet(LS_KEY, JSON.stringify({ tasks: state.tasks, entries: state.entries, source: state.source }));
+    lsSet(LS_KEY, JSON.stringify({ tasks: state.tasks, entries: state.entries, wedding: state.wedding,
+      source: state.source, weddingLinked: state.weddingLinked }));
   }
 
   /* ---------- Google Sheets sync (Apps Script web app) ---------- */
@@ -867,6 +1138,8 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   var SHEET_TOKEN = 'pBbsH2RBEOQh1hh1DxB5GbCEATpk';
 
   var cloud = null;
+  // Kinds the connected sheet knows. "wedding" joins once Code.gs is redeployed with it.
+  var cloudKinds = ['tasks', 'entries'];
   var queues = new Map();
   function enqueue(key, fn) {
     var prev = queues.get(key) || Promise.resolve();
@@ -879,8 +1152,8 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     cloud = null;
     state.mode = 'local';
     state.source = 'local';
+    state.weddingLinked = false;
     saveLocal();
-    renderBadge();
     if (message) toast(message);
   }
   function sheetCall(body) {
@@ -902,7 +1175,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     toast('Not saved to the sheet. Check your connection.');
   }
   function cloudWrite(kind, id, op) {
-    if (state.mode !== 'cloud' || !cloud) return;
+    if (state.mode !== 'cloud' || !cloud || cloudKinds.indexOf(kind) < 0) return;
     var body = op.del ? { action: 'delete', kind: kind, id: id } : { action: 'upsert', kind: kind, item: op.data, notify: !!op.notify };
     var run = function () { return sheetCall(body); };
     enqueue(kind + '/' + id, function () {
@@ -917,11 +1190,13 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     if (!SHEET_API_URL) return;
     sheetCall({ action: 'list' }).then(function (res) {
       cloud = true;
-      var firstLink = state.source === 'local';
-      ['tasks', 'entries'].forEach(function (kind) {
-        var valid = kind === 'tasks' ? validTask : validEntry;
-        var plain = kind === 'tasks' ? plainTask : plainEntry;
-        var items = (res[kind] || []).filter(valid).map(plain);
+      // An older Code.gs sends no "wedding" list: keep those on this device until it does.
+      cloudKinds = ['tasks', 'entries'].concat(Array.isArray(res.wedding) ? ['wedding'] : []);
+      cloudKinds.forEach(function (kind) {
+        var plain = PLAIN[kind];
+        var items = (res[kind] || []).filter(VALID[kind]).map(plain);
+        var firstLink = kind === 'wedding' ? !state.weddingLinked : state.source === 'local';
+        if (kind === 'wedding') state.weddingLinked = true;
         if (firstLink) {
           // Bring anything saved on this device into the sheet, once.
           var have = new Set(items.map(function (x) { return x.id; }));
@@ -1052,6 +1327,18 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     state.entries = state.entries.filter(function (x) { return x.id !== id; });
     saveLocal();
     cloudWrite('entries', id, { del: true });
+  }
+  function upsertWedding(w) {
+    w = plainWedding(w);
+    var i = state.wedding.findIndex(function (x) { return x.id === w.id; });
+    if (i >= 0) state.wedding[i] = w; else state.wedding.push(w);
+    saveLocal();
+    cloudWrite('wedding', w.id, { data: w });
+  }
+  function deleteWedding(id) {
+    state.wedding = state.wedding.filter(function (x) { return x.id !== id; });
+    saveLocal();
+    cloudWrite('wedding', id, { del: true });
   }
 
   /* ---------- labels ---------- */
@@ -1224,7 +1511,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   }
 
   /* ---------- navigation ---------- */
-  var VIEWS = ['garden', 'focus', 'journal'];
+  var VIEWS = ['garden', 'focus', 'journal', 'wedding'];
   function show(view, updateHash) {
     state.view = view;
     VIEWS.forEach(function (v) { $('#view-' + v).hidden = v !== view; });
@@ -1233,21 +1520,11 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     });
     if (updateHash) { try { history.replaceState(null, '', '#' + view); } catch (e) {} }
     if (view === 'focus') renderFocusTasks();
+    heroPlay();
   }
   $$('.nav button').forEach(function (b) {
     b.addEventListener('click', function () { show(b.dataset.view, true); window.scrollTo(0, 0); });
   });
-
-  /* ---------- save badge ---------- */
-  function renderBadge() {
-    var el = $('#saveState');
-    var label;
-    el.classList.remove('warn');
-    if (state.mode === 'cloud') label = 'Synced to Google Sheets';
-    else if (localOK) label = 'Saved on this device';
-    else { label = 'Not saving'; el.classList.add('warn'); }
-    el.querySelector('span').textContent = label;
-  }
 
   /* ---------- greeting ---------- */
   function renderGreeting() {
@@ -1627,6 +1904,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   }
   $('#focusTask').addEventListener('change', function (e) { state.focusTaskId = e.target.value; renderTimerDone(); });
 
+  var PRESET_MINS = [5, 15, 25, 45, 60];
   var timer = { mins: 25, total: 1500, remaining: 1500, running: false, endAt: 0, iv: null, finished: false };
   var petals = $$('#grow .g-petal');
   function clamp01(v) { return Math.max(0, Math.min(1, v)); }
@@ -1647,6 +1925,13 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
       b.setAttribute('aria-pressed', String(Number(b.dataset.min) === timer.mins));
       b.disabled = timer.running;
     });
+    // A length that is not one of the presets shows on the Custom chip itself.
+    var custom = PRESET_MINS.indexOf(timer.mins) < 0;
+    var cb = $('#customMinBtn');
+    cb.textContent = custom ? timer.mins + ' min' : 'Custom';
+    cb.setAttribute('aria-pressed', String(custom));
+    if (timer.running) $('#customMinRow').hidden = true;
+    cb.setAttribute('aria-expanded', String(!$('#customMinRow').hidden));
     $('#grow').classList.toggle('bloomed', timer.finished);
   }
   function renderTimerDone() {
@@ -1764,6 +2049,30 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     var b = e.target.closest('[data-min]');
     if (!b || timer.running) return;
     timer.mins = Number(b.dataset.min);
+    $('#customMinRow').hidden = true;
+    $('#customMinError').textContent = '';
+    resetTimer();
+  });
+  $('#customMinBtn').addEventListener('click', function () {
+    var row = $('#customMinRow');
+    row.hidden = !row.hidden;
+    $('#customMinError').textContent = '';
+    renderTimer();
+    if (!row.hidden) { $('#customMin').value = PRESET_MINS.indexOf(timer.mins) < 0 ? timer.mins : ''; $('#customMin').focus(); }
+  });
+  $('#customMin').addEventListener('input', function () { $('#customMinError').textContent = ''; });
+  $('#customMinRow').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (timer.running) return;
+    var n = Number($('#customMin').value);
+    if (!(n >= 1 && n <= 180) || Math.floor(n) !== n) {
+      $('#customMinError').textContent = 'Pick a whole number from 1 to 180.';
+      $('#customMin').focus();
+      return;
+    }
+    $('#customMinError').textContent = '';
+    timer.mins = n;
+    $('#customMinRow').hidden = true;
     resetTimer();
   });
   $('#markFocusDone').addEventListener('click', function () {
@@ -1992,12 +2301,405 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     }
   });
 
+  /* ---------- wedding ---------- */
+  var WED_CATS = [
+    { k: 'venue', label: 'Venue', c: 'var(--rose)' },
+    { k: 'paperwork', label: 'Paperwork', c: 'var(--mist)' },
+    { k: 'attire', label: 'Attire', c: 'var(--lilac)' },
+    { k: 'food', label: 'Food', c: 'var(--peach)' },
+    { k: 'photo', label: 'Photo & video', c: 'var(--sky)' },
+    { k: 'decor', label: 'Decor', c: 'var(--sun)' },
+    { k: 'guests', label: 'Guests', c: 'var(--leaf)' },
+    { k: 'other', label: 'Other', c: 'var(--sage)' }
+  ];
+  var WED_STARTER = [
+    ['Book the venue', 'venue'], ['Prepare marriage documents', 'paperwork'], ['Choose our wedding outfits', 'attire'],
+    ['Buy the rings', 'attire'], ['Book the caterer', 'food'], ['Book the photographer', 'photo'],
+    ['Pick the theme and decor', 'decor'], ['Print and send the invitations', 'guests'], ['Plan the honeymoon', 'other']
+  ];
+  var PARTNER_BY = {}; PARTNERS.forEach(function (p) { PARTNER_BY[p.k] = p; });
+  $('#wedCouple').textContent = PARTNERS.map(function (p) { return p.name; }).join(' & ');
+  $('#goalCat').innerHTML = WED_CATS.map(function (c) { return '<option value="' + c.k + '">' + esc(c.label) + '</option>'; }).join('');
+  $('#savingWho').innerHTML = PARTNERS.map(function (p) {
+    return '<button type="button" class="pick" data-who="' + p.k + '">' + esc(p.name) + '</button>';
+  }).join('');
+
+  function wedSettings() {
+    return state.wedding.find(function (w) { return w.id === WED_SETTINGS; }) || plainWedding({ id: WED_SETTINGS });
+  }
+  function wedGoals() { return state.wedding.filter(function (w) { return w.type === 'goal'; }); }
+  function wedSavings() { return state.wedding.filter(function (w) { return w.type === 'saving'; }); }
+  function rm(n) { return 'RM ' + Number(n || 0).toLocaleString('en-MY', { maximumFractionDigits: 2 }); }
+  function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+  function thisMonth() { return todayStr().slice(0, 7); }
+  function monthName(ym, long) {
+    var p = ym.split('-').map(Number);
+    return new Date(p[0], p[1] - 1, 1).toLocaleDateString('en-GB', { month: long ? 'long' : 'short', year: 'numeric' });
+  }
+  function sum(list, key) { return list.reduce(function (s, x) { return s + (Number(x[key]) || 0); }, 0); }
+
+  function renderWedDay(s) {
+    var d = daysUntil(s.date);
+    var count = $('#wedCount');
+    $('#heroDate').textContent = s.date
+      ? parseYMD(s.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    if (d === null) count.textContent = 'Set your wedding date below';
+    else if (d > 0) count.innerHTML = '<em>' + plural(d, 'day') + '</em>&nbsp;to go';
+    else if (d === 0) count.innerHTML = 'It is <em>today</em>!';
+    else count.innerHTML = 'Married for&nbsp;<em>' + plural(-d, 'day') + '</em>';
+  }
+
+  /* wedding photo banner */
+  // Crossfades every HERO_MS while the Wedding tab is on screen. Pauses on hover or keyboard focus,
+  // and never auto-plays for people who asked for less motion.
+  var HERO_MS = 5000;
+  var hero = { i: 0, iv: null, held: false };
+  var heroSlides = $$('#wedHero .hero-slide');
+  $('#heroDots').innerHTML = heroSlides.map(function (img, i) {
+    return '<button type="button" data-dot="' + i + '" aria-label="Photo ' + (i + 1) + ' of ' + heroSlides.length + '"></button>';
+  }).join('');
+  function heroGo(i) {
+    hero.i = (i + heroSlides.length) % heroSlides.length;
+    heroSlides.forEach(function (img, n) { img.classList.toggle('is-on', n === hero.i); });
+    $$('#heroDots button').forEach(function (b, n) { b.setAttribute('aria-current', String(n === hero.i)); });
+  }
+  function heroPlay() {
+    clearInterval(hero.iv); hero.iv = null;
+    if (reduceMotion || hero.held || document.hidden || state.view !== 'wedding') return;
+    hero.iv = setInterval(function () { heroGo(hero.i + 1); }, HERO_MS);
+  }
+  $('#wedHero').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-hero], [data-dot]');
+    if (!b) return;
+    heroGo(b.dataset.dot != null ? Number(b.dataset.dot) : hero.i + Number(b.dataset.hero));
+    heroPlay();
+  });
+  ['mouseenter', 'focusin'].forEach(function (ev) { $('#wedHero').addEventListener(ev, function () { hero.held = true; heroPlay(); }); });
+  ['mouseleave', 'focusout'].forEach(function (ev) { $('#wedHero').addEventListener(ev, function () { hero.held = false; heroPlay(); }); });
+  // Swipe left or right on phones.
+  var heroX = null;
+  $('#wedHero').addEventListener('touchstart', function (e) { heroX = e.touches[0].clientX; }, { passive: true });
+  $('#wedHero').addEventListener('touchend', function (e) {
+    if (heroX === null) return;
+    var dx = e.changedTouches[0].clientX - heroX;
+    heroX = null;
+    if (Math.abs(dx) > 40) { heroGo(hero.i + (dx < 0 ? 1 : -1)); heroPlay(); }
+  });
+  document.addEventListener('visibilitychange', heroPlay);
+  heroGo(0);
+
+  // Everything the dashboard and the monthly list need, worked out once.
+  // Ultimate goal = every item's estimated cost; saved = every monthly saving. The monthly amount spreads
+  // what was still missing at the start of this month over the months left before the wedding month.
+  function wedMoney(s) {
+    var goals = wedGoals(), savings = wedSavings(), now = thisMonth();
+    var m = {
+      goals: goals, savings: savings, now: now,
+      target: sum(goals, 'cost'),
+      noCost: goals.filter(function (g) { return g.cost === null; }).length,
+      total: sum(savings, 'amount'),
+      monthTotal: sum(savings.filter(function (x) { return x.month === now; }), 'amount'),
+      months: null, perMonth: 0
+    };
+    m.left = Math.max(0, m.target - m.total);
+    if (s.date) {
+      var p = s.date.split('-').map(Number), n = now.split('-').map(Number);
+      m.months = (p[0] - n[0]) * 12 + (p[1] - n[1]);
+      if (m.months >= 1 && m.target > 0) m.perMonth = Math.max(0, Math.ceil((m.target - (m.total - m.monthTotal)) / m.months));
+    }
+    return m;
+  }
+
+  function renderWedDash(s, m) {
+    var pct = m.target > 0 ? Math.min(100, Math.round(m.total / m.target * 100)) : 0;
+    $('#statGoal').textContent = rm(m.target);
+    $('#statGoalSub').innerHTML = m.goals.length
+      ? 'From ' + plural(m.goals.length, 'item') + (m.noCost ? ' · <span class="need-cost">' + m.noCost + ' without a cost</span>' : '')
+      : 'Add items below';
+    $('#statSaved').textContent = rm(m.total);
+    $('#statSavedSub').textContent = m.target > 0 ? pct + '% of the goal' : 'From your monthly savings';
+    $('#statLeft').textContent = rm(m.left);
+    $('#statLeftSub').textContent = m.target > 0 && !m.left ? 'Goal reached 🎉' : s.date ? 'Before ' + shortDate(parseYMD(s.date)) + ' ' + s.date.slice(0, 4) : 'Before the big day';
+    var month = $('#statMonth'), sub = $('#statMonthSub');
+    if (m.perMonth) { month.textContent = rm(m.perMonth); sub.textContent = 'For ' + plural(m.months, 'month') + ', together'; }
+    else {
+      month.textContent = '–';
+      sub.textContent = !m.target ? 'Add item costs first' : !m.left ? 'Nothing more needed' : !s.date ? 'Set your wedding date' : 'Save the rest now';
+    }
+
+    var bar = $('#wedBar');
+    bar.style.setProperty('--p', pct + '%');
+    bar.setAttribute('aria-valuenow', String(pct));
+    $('#wedPlan').innerHTML = m.target > 0
+      ? '<em>' + pct + '%</em> of our ultimate goal saved'
+      : 'Add wedding items with their estimated cost to set your ultimate goal.';
+
+    $('#wedPeople').innerHTML = PARTNERS.map(function (pt) {
+      var own = sum(m.savings.filter(function (x) { return x.who === pt.k; }), 'amount');
+      var share = m.total > 0 ? Math.round(own / m.total * 100) : 0;
+      return '<div class="wed-person"><span class="who"><span class="who-dot" style="--c:' + pt.c + '">' + esc(pt.name.charAt(0)) + '</span>' +
+        esc(pt.name) + '</span><b>' + rm(own) + '</b><small>' + share + '% of our savings</small></div>';
+    }).join('');
+  }
+
+  // One card per month, newest first. This month is always shown, and is checked against the monthly amount.
+  function renderWedMonths(m) {
+    var byMonth = {};
+    m.savings.forEach(function (x) { (byMonth[x.month] = byMonth[x.month] || []).push(x); });
+    if (!byMonth[m.now]) byMonth[m.now] = [];
+    var keys = Object.keys(byMonth).sort().reverse();
+
+    $('#wedMonths').innerHTML = keys.map(function (ym) {
+      var list = byMonth[ym].sort(function (a, b) { return b.createdAt - a.createdAt; });
+      var amt = sum(list, 'amount');
+      var isNow = ym === m.now;
+      var status = '';
+      if (isNow && m.perMonth) {
+        status = amt >= m.perMonth
+          ? '<p class="month-status ok">This month\'s target of ' + rm(m.perMonth) + ' is reached 🎉</p>'
+          : '<p class="month-status short">' + rm(m.perMonth - amt) + ' more to reach this month\'s target of ' + rm(m.perMonth) + '</p>';
+      } else if (!list.length) status = '<p class="month-status">Nothing saved yet this month.</p>';
+      var split = list.length ? PARTNERS.map(function (pt) {
+        return pt.name + ' ' + rm(sum(list.filter(function (x) { return x.who === pt.k; }), 'amount'));
+      }).join(' · ') : '';
+      return '<article class="card month-card' + (isNow ? ' is-now' : '') + '">' +
+        '<div class="month-head"><h3>' + esc(monthName(ym, true)) + (isNow ? '<span>This month</span>' : '') + '</h3>' +
+        '<span class="month-total">' + esc(rm(amt)) + '</span></div>' +
+        (split ? '<p class="month-status">' + esc(split) + '</p>' : '') + status +
+        (list.length ? '<ul class="wed-hist">' + list.map(savingHTML).join('') + '</ul>' : '') + '</article>';
+    }).join('');
+
+    // A thank-you for whoever saved this month.
+    var givers = PARTNERS.map(function (pt) {
+      return { p: pt, amt: sum(m.savings.filter(function (x) { return x.month === m.now && x.who === pt.k; }), 'amount') };
+    }).filter(function (g) { return g.amt > 0; });
+    $('#wedCheer').textContent = !givers.length ? ''
+      : givers.length === 1 ? 'Thank you, ' + givers[0].p.name + '! ' + rm(givers[0].amt) + ' saved this month 💕'
+      : 'Thank you both! ' + givers.map(function (g) { return g.p.name + ' ' + rm(g.amt); }).join(' + ') + ' this month. Great teamwork 💕';
+  }
+
+  function confirmHTML(attr) {
+    return '<div class="confirm" role="group" aria-label="Confirm remove"><span>Remove?</span>' +
+      '<button type="button" class="mini danger" ' + attr + '="del-yes">Remove</button>' +
+      '<button type="button" class="mini" ' + attr + '="del-no">Keep</button></div>';
+  }
+  function savingHTML(x) {
+    var pt = PARTNER_BY[x.who] || PARTNERS[0];
+    return '<li class="hist-item" data-id="' + esc(x.id) + '">' +
+      '<span class="who-dot" style="--c:' + pt.c + '" aria-hidden="true">' + esc(pt.name.charAt(0)) + '</span>' +
+      '<div><p class="hist-main">' + esc(pt.name) + '</p>' +
+      (x.note ? '<p class="hist-note">' + esc(x.note) + '</p>' : '') + '</div>' +
+      '<span class="hist-amt">' + esc(rm(x.amount)) + '</span>' +
+      (state.confirmWed === x.id ? confirmHTML('data-sact')
+        : '<button type="button" class="icon-btn" data-sact="del" aria-label="Remove ' + esc(pt.name + ' ' + rm(x.amount)) + '">' + ICON_X + '</button>') +
+      '</li>';
+  }
+
+  function wedGoalHTML(w) {
+    var tail = state.confirmWed === w.id ? '<span></span>' + confirmHTML('data-wact')
+      : '<div class="task-actions">' +
+        '<button type="button" class="icon-btn" data-wact="edit" aria-label="Edit ' + esc(w.title) + '">' + ICON_EDIT + '</button>' +
+        '<button type="button" class="icon-btn" data-wact="del" aria-label="Remove ' + esc(w.title) + '">' + ICON_X + '</button></div>';
+    var bits = [w.cost === null ? '<button type="button" class="link-btn need-cost" data-wact="edit">Add cost</button>' : esc(rm(w.cost))];
+    if (w.done) bits.push(isToday(w.doneAt) ? 'Done today' : 'Done ' + esc(shortDate(new Date(w.doneAt || Date.now()))));
+    return '<li class="task' + (w.done ? ' is-done' : '') + (state.justAdded === w.id ? ' is-new' : '') + '" data-id="' + esc(w.id) + '">' +
+      '<button type="button" class="bud" data-wact="toggle" aria-pressed="' + w.done + '" aria-label="' +
+      (w.done ? 'Mark as not done: ' : 'Mark as done: ') + esc(w.title) + '"><svg aria-hidden="true"><use href="#f-blossom"/></svg></button>' +
+      '<div class="task-main"><p class="task-title">' + esc(w.title) + '</p>' +
+      '<p class="task-meta"><span>' + bits.join(' · ') + '</span></p></div>' + tail + '</li>';
+  }
+
+  function renderWedding() {
+    var s = wedSettings();
+    if (document.activeElement !== $('#wedDate')) $('#wedDate').value = s.date;
+    var money = wedMoney(s);
+    renderWedDay(s);
+    renderWedDash(s, money);
+    renderWedMonths(money);
+
+    var goals = wedGoals().sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
+    var lists = {
+      todo: goals.filter(function (w) { return !w.done; }),
+      done: goals.filter(function (w) { return w.done; }),
+      all: goals
+    };
+    Object.keys(lists).forEach(function (k) { $('[data-wcount="' + k + '"]').textContent = lists[k].length; });
+    $$('#wFilters .tab').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.wfilter === state.wFilter)); });
+
+    var shown = lists[state.wFilter] || goals;
+    var catOf = function (w) { return WED_CATS.some(function (x) { return x.k === w.cat; }) ? w.cat : 'other'; };
+    $('#wedList').innerHTML = WED_CATS.map(function (c) {
+      var items = shown.filter(function (w) { return catOf(w) === c.k; });
+      if (!items.length) return '';
+      var all = goals.filter(function (w) { return catOf(w) === c.k; });
+      var done = all.filter(function (w) { return w.done; }).length;
+      return '<section class="prio-group" aria-label="' + esc(c.label) + '">' +
+        '<h2 class="prio-head" style="--c:' + c.c + '"><i></i>' + esc(c.label) +
+        '<span class="n">' + done + '/' + all.length + ' · ' + esc(rm(sum(all, 'cost'))) + '</span></h2>' +
+        '<ul class="task-list">' + items.map(wedGoalHTML).join('') + '</ul></section>';
+    }).join('');
+
+    var empty = $('#wedEmpty');
+    empty.hidden = shown.length > 0;
+    if (!shown.length) {
+      empty.innerHTML = '<svg aria-hidden="true"><use href="#f-sprout"/></svg>' + (goals.length
+        ? '<p>' + (state.wFilter === 'done' ? 'Nothing done yet.' : 'Every item is done!') + '</p>'
+        : '<p>No wedding items yet.</p><button type="button" class="btn btn-soft" id="wedStarter">Add a starter list</button>');
+    }
+    state.justAdded = null;
+  }
+
+  $('#wedDate').addEventListener('change', function () {
+    upsertWedding(Object.assign({}, wedSettings(), { date: this.value }));
+    renderWedding();
+  });
+
+  /* wedding modals */
+  // Shared open/close for the goal and savings popups; the Garden task popup has its own.
+  var wedOpener = null;
+  function openWedModal(d, focusEl) {
+    wedOpener = document.activeElement;
+    if (d.showModal) { if (!d.open) d.showModal(); } else d.setAttribute('open', '');
+    focusEl.focus();
+  }
+  function closeWedModal(d) {
+    if (d.close && d.open) d.close(); else { d.removeAttribute('open'); d.dispatchEvent(new Event('close')); }
+  }
+  ['#goalModal', '#savingModal'].forEach(function (sel) {
+    var d = $(sel);
+    d.addEventListener('click', function (e) { if (e.target === d || e.target.closest('[data-close]')) closeWedModal(d); });
+    d.addEventListener('close', function () {
+      if (wedOpener && wedOpener.focus && document.contains(wedOpener)) wedOpener.focus();
+      wedOpener = null;
+    });
+  });
+
+  var goalEditing = null;
+  function openGoal(w) {
+    goalEditing = w ? w.id : null;
+    $('#goalModalTitle').textContent = w ? 'Edit wedding item' : 'New wedding item';
+    $('#goalSave').textContent = w ? 'Save' : 'Add item';
+    $('#goalTitle').value = w ? w.title : '';
+    $('#goalCost').value = w && w.cost !== null ? w.cost : '';
+    $('#goalCat').value = w ? w.cat : 'venue';
+    $('#goalError').textContent = '';
+    openWedModal($('#goalModal'), w && w.cost === null ? $('#goalCost') : $('#goalTitle'));
+  }
+  $('#addGoalBtn').addEventListener('click', function () { openGoal(null); });
+  $('#goalForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var title = $('#goalTitle').value.trim();
+    var cost = money($('#goalCost').value);
+    if (!title) { $('#goalError').textContent = 'Name your item first.'; $('#goalTitle').focus(); return; }
+    if (cost === null) { $('#goalError').textContent = 'Key in the estimated cost.'; $('#goalCost').focus(); return; }
+    var old = goalEditing && state.wedding.find(function (x) { return x.id === goalEditing; });
+    var w = Object.assign(old ? {} : { id: makeId('w_'), done: false, createdAt: Date.now() }, old || {},
+      { type: 'goal', title: title, cost: cost, cat: $('#goalCat').value });
+    upsertWedding(w);
+    state.justAdded = w.id;
+    if (!old && state.wFilter === 'done') state.wFilter = 'todo';
+    toast(old ? 'Updated.' : 'Item added.');
+    closeWedModal($('#goalModal'));
+    renderWedding();
+  });
+  ['#goalTitle', '#goalCost'].forEach(function (s) { $(s).addEventListener('input', function () { $('#goalError').textContent = ''; }); });
+
+  var savingWho = PARTNERS[0].k;
+  function syncWho() {
+    $$('#savingWho .pick').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.who === savingWho)); });
+  }
+  $('#savingWho').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-who]');
+    if (!b) return;
+    savingWho = b.dataset.who;
+    syncWho();
+  });
+  $('#addSavingBtn').addEventListener('click', function () {
+    // The last 24 months, newest first, so a missed month can still be logged.
+    var d = new Date(), opts = '';
+    for (var i = 0; i < 24; i++) {
+      var ym = ymd(new Date(d.getFullYear(), d.getMonth() - i, 1)).slice(0, 7);
+      opts += '<option value="' + ym + '">' + esc(monthName(ym)) + '</option>';
+    }
+    $('#savingMonth').innerHTML = opts;
+    $('#savingMonth').value = thisMonth();
+    $('#savingAmount').value = '';
+    $('#savingNote').value = '';
+    $('#savingError').textContent = '';
+    syncWho();
+    openWedModal($('#savingModal'), $('#savingAmount'));
+  });
+  $('#savingForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var amt = money($('#savingAmount').value);
+    if (!amt) { $('#savingError').textContent = 'Key in how much was saved.'; $('#savingAmount').focus(); return; }
+    upsertWedding({ id: makeId('s_'), type: 'saving', who: savingWho, amount: amt, month: $('#savingMonth').value,
+      note: $('#savingNote').value.trim(), createdAt: Date.now() });
+    closeWedModal($('#savingModal'));
+    toast('Thank you, ' + PARTNER_BY[savingWho].name + '! ' + rm(amt) + ' saved 💕');
+    renderWedding();
+  });
+  $('#savingAmount').addEventListener('input', function () { $('#savingError').textContent = ''; });
+
+  $('#wFilters').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-wfilter]');
+    if (!b) return;
+    state.wFilter = b.dataset.wfilter;
+    state.confirmWed = null;
+    renderWedding();
+  });
+
+  $('#wedEmpty').addEventListener('click', function (e) {
+    if (!e.target.closest('#wedStarter')) return;
+    var now = Date.now();
+    WED_STARTER.forEach(function (g, i) { upsertWedding({ id: makeId('w_'), type: 'goal', title: g[0], cat: g[1], done: false, createdAt: now + i }); });
+    state.wFilter = 'todo';
+    toast('Starter list added. Key in each cost.');
+    renderWedding();
+  });
+
+  // Remove-with-confirm, shared by goals (data-wact) and savings (data-sact).
+  function wedConfirm(id, act, attr, scope) {
+    if (act === 'del') {
+      state.confirmWed = id; renderWedding();
+      var keep = $(scope + ' [data-id="' + cssEsc(id) + '"] [' + attr + '="del-no"]'); if (keep) keep.focus();
+    } else if (act === 'del-yes') {
+      deleteWedding(id); state.confirmWed = null;
+      toast('Removed.'); renderWedding();
+    } else if (act === 'del-no') {
+      state.confirmWed = null; renderWedding();
+      var del = $(scope + ' [data-id="' + cssEsc(id) + '"] [' + attr + '="del"]'); if (del) del.focus();
+    }
+  }
+  $('#wedList').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-wact]');
+    if (!btn) return;
+    var id = btn.closest('.task').dataset.id;
+    var w = state.wedding.find(function (x) { return x.id === id; });
+    if (!w) return;
+    var act = btn.dataset.wact;
+    if (act === 'toggle') {
+      var nowDone = !w.done;
+      upsertWedding(Object.assign({}, w, { done: nowDone, doneAt: nowDone ? Date.now() : null }));
+      btn.setAttribute('aria-pressed', String(nowDone));
+      if (nowDone) burst(btn);
+      toast(nowDone ? pick(BLOOM_MSGS) : 'Back on the list.');
+      setTimeout(renderWedding, reduceMotion ? 0 : 560);
+    } else if (act === 'edit') openGoal(w);
+    else wedConfirm(id, act, 'data-wact', '#wedList');
+  });
+  $('#wedMonths').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-sact]');
+    if (!btn) return;
+    wedConfirm(btn.closest('.hist-item').dataset.id, btn.dataset.sact, 'data-sact', '#wedMonths');
+  });
+
   /* ---------- render all ---------- */
   function render() {
     renderGarden();
     renderJournal();
+    renderWedding();
     if (state.view === 'focus') renderFocusTasks(); else renderTimerDone();
-    renderBadge();
   }
 
   /* ---------- boot ---------- */
