@@ -214,11 +214,15 @@ input[type="text"], input[type="date"], input[type="time"], select, textarea{
   border:1.5px solid var(--line); border-radius:14px; padding:11px 14px; transition:border-color .2s, background .2s}
 input[type="text"]:focus, input[type="date"]:focus, input[type="time"]:focus, select:focus, textarea:focus{border-color:var(--rose); background:var(--surface); outline:none}
 input[type="text"]:focus-visible, input[type="date"]:focus-visible, input[type="time"]:focus-visible, select:focus-visible, textarea:focus-visible{outline:3px solid var(--rose-soft); outline-offset:0}
-.time-row{display:flex; align-items:center; gap:10px}
-.time-row label{font-weight:700; font-size:.86rem; color:var(--muted); flex:none}
-.time-row input{max-width:160px; padding:8px 12px}
+/* Two equal columns. iOS draws date/time inputs centred, with their own min width and no height when empty, so reset that. */
+.when-row{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px}
+.when-row .field{gap:6px}
+input[type="date"], input[type="time"]{-webkit-appearance:none; appearance:none; display:block; min-height:46px; text-align:left; line-height:1.2}
+input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value{text-align:left; margin:0}
+.when-clear{justify-self:start; margin-top:-4px}
 .title-in{font-size:1.06rem; padding:13px 16px}
 textarea{resize:vertical; min-height:140px; line-height:1.5}
+.desc-in{min-height:76px}
 .chip-group{display:flex; flex-wrap:wrap; gap:6px}
 .pick{border:1.5px solid var(--line); background:transparent; color:var(--ink); border-radius:999px;
   padding:7px 13px; font-weight:700; font-size:.84rem; line-height:1.1; cursor:pointer; transition:transform .15s, background .2s}
@@ -272,10 +276,28 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
 .empty p{margin:0}
 
 /* ---------- Garden ---------- */
-.garden-grid{display:grid; gap:20px; grid-template-columns:minmax(0,1fr); align-items:start}
-@media (min-width:920px){ .garden-grid{grid-template-columns:minmax(0,360px) minmax(0,1fr); gap:28px} }
-.bed{display:grid; gap:14px; min-width:0}
+.garden-head{display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:12px 20px}
+.garden-head .page-head{margin-bottom:0}
+.add-btn svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2.6; stroke-linecap:round}
+.bed{display:grid; gap:14px; min-width:0; max-width:760px; margin:26px auto 0}
 .edit-label{color:var(--rose)}
+.prio-group{display:grid; gap:8px}
+.prio-head{display:flex; align-items:center; gap:8px; margin:8px 0 0; font-weight:800; font-size:.78rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.prio-head i{width:9px; height:9px; border-radius:50%; display:inline-block; background:var(--c)}
+.prio-head .n{font-weight:700; letter-spacing:0; font-variant-numeric:tabular-nums}
+.task-desc{margin:3px 0 0; color:var(--muted); font-size:.86rem; line-height:1.4; white-space:pre-wrap; overflow-wrap:anywhere;
+  display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+.spot-desc{margin:0 0 6px; color:var(--ink); opacity:.8; font-size:.92rem; padding-right:clamp(72px, 12vw, 100px); white-space:pre-wrap; overflow-wrap:anywhere}
+
+/* ---------- Task modal ---------- */
+.modal{width:min(460px, calc(100% - 32px)); max-height:calc(100dvh - 32px); padding:0; border:1px solid var(--line); border-radius:24px;
+  background:var(--surface); color:var(--ink); box-shadow:0 24px 60px rgba(0,0,0,.18); overflow:auto}
+.modal::backdrop{background:rgba(40,30,40,.35); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
+.modal[open]{animation:modal-in .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes modal-in{from{opacity:0; transform:translateY(16px) scale(.97)}}
+.modal-body{padding:22px}
+.modal-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:-4px}
+.modal-title{margin:0; font-family:var(--font-display); font-weight:400; font-size:1.5rem; line-height:1.1}
 
 .spot{position:relative; overflow:hidden; border-radius:24px; padding:24px; border:1px solid var(--line);
   background:linear-gradient(130deg, var(--sun-soft), var(--rose-soft) 70%); box-shadow:var(--shadow); min-width:0}
@@ -523,36 +545,43 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   <main>
     <!-- ===================== GARDEN ===================== -->
     <section class="view" id="view-garden" aria-labelledby="gardenTitle">
-      <header class="page-head">
-        <p class="eyebrow" id="greeting">Hello</p>
-        <h1 id="gardenTitle">Your task <em>garden</em></h1>
-      </header>
+      <div class="garden-head">
+        <header class="page-head">
+          <p class="eyebrow" id="greeting">Hello</p>
+          <h1 id="gardenTitle">Your task <em>garden</em></h1>
+        </header>
+        <button type="button" class="btn btn-primary add-btn" id="addTaskBtn" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>New task
+        </button>
+      </div>
 
-      <div class="garden-grid">
-        <section class="card" aria-label="Add a task">
-          <form id="taskForm" class="stack" autocomplete="off" novalidate>
+      <dialog class="modal" id="taskModal" aria-labelledby="modalTitle">
+          <form id="taskForm" class="stack modal-body" autocomplete="off" novalidate>
+            <div class="modal-top">
+              <h2 class="modal-title" id="modalTitle">Plant a new task</h2>
+              <button type="button" class="icon-btn" id="modalClose" aria-label="Close">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+              </button>
+            </div>
             <div class="field">
-              <label class="field-label" for="taskTitle" id="titleLbl">New task</label>
+              <label class="field-label" for="taskTitle" id="titleLbl">Task</label>
               <input id="taskTitle" class="title-in" type="text" maxlength="140" placeholder="What needs doing?">
             </div>
             <div class="field">
-              <span class="field-label" id="dueLbl">Due</span>
-              <div class="chip-group" role="group" aria-labelledby="dueLbl">
-                <button type="button" class="pick" data-due="0">Today</button>
-                <button type="button" class="pick" data-due="1">Tomorrow</button>
-                <button type="button" class="pick" data-due="7">Next week</button>
-                <button type="button" class="pick" id="dateToggle" aria-expanded="false" aria-controls="taskDue">Date</button>
+              <label class="field-label" for="taskDesc">Description <span class="muted">(optional)</span></label>
+              <textarea id="taskDesc" class="desc-in" rows="3" maxlength="1000" placeholder="Notes, steps, links…"></textarea>
+            </div>
+            <div class="when-row">
+              <div class="field">
+                <label class="field-label" for="taskDue">Due date</label>
+                <input id="taskDue" type="date">
               </div>
-              <label class="sr-only" for="taskDue">Due date</label>
-              <input id="taskDue" type="date" hidden>
-              <div class="time-row">
-                <label for="taskTime">Finish by</label>
+              <div class="field">
+                <label class="field-label" for="taskTime">Finish by</label>
                 <input id="taskTime" type="time">
-                <button type="button" class="icon-btn" id="timeClear" aria-label="Clear finish time" hidden>
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
-                </button>
               </div>
             </div>
+            <button type="button" class="link-btn when-clear" id="whenClear" hidden>Clear date and time</button>
             <div class="field">
               <span class="field-label" id="impLbl">Priority</span>
               <div class="chip-group" role="group" aria-labelledby="impLbl" data-group="imp">
@@ -562,9 +591,9 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
               </div>
             </div>
             <div class="field">
-              <span class="field-label" id="sizeLbl">Size</span>
+              <span class="field-label" id="sizeLbl">How long will it take?</span>
               <button type="button" class="size-btn" id="sizeBtn" aria-expanded="false" aria-controls="sizePanel" aria-describedby="sizeLbl">
-                <span id="sizeText">30 min · medium</span>
+                <span id="sizeText">About 30 min · medium effort</span>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
               </button>
               <div class="size-panel" id="sizePanel" hidden>
@@ -579,7 +608,8 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
                   <option value="480">A full day</option>
                   <option value="1440">A few days</option>
                 </select>
-                <div class="chip-group" role="group" aria-label="Effort" data-group="effort">
+                <span class="field-label" id="effortLbl">How hard is it?</span>
+                <div class="chip-group" role="group" aria-labelledby="effortLbl" data-group="effort">
                   <button type="button" class="pick" data-val="easy">Easy</button>
                   <button type="button" class="pick" data-val="some">Medium</button>
                   <button type="button" class="pick" data-val="hard">Tough</button>
@@ -589,10 +619,10 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
             <p class="form-error" id="formError" role="alert"></p>
             <div class="form-actions">
               <button class="btn btn-primary" type="submit" id="plantBtn">Plant</button>
-              <button class="btn btn-ghost" type="button" id="cancelEdit" hidden>Cancel</button>
+              <button class="btn btn-ghost" type="button" id="cancelEdit">Cancel</button>
             </div>
           </form>
-        </section>
+      </dialog>
 
         <div class="bed">
           <section class="spot" id="spot" aria-live="polite"></section>
@@ -616,10 +646,9 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
           </ul>
           <p class="note" id="exampleNote" hidden>Samples. Add a task to replace them.</p>
           <div class="clear-row" id="clearRow" hidden></div>
-          <ul class="task-list" id="taskList"></ul>
+          <div class="stack" id="taskList"></div>
           <div class="empty" id="emptyState" hidden></div>
         </div>
-      </div>
     </section>
 
     <!-- ===================== FOCUS ===================== -->
@@ -791,7 +820,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     view: 'garden', filter: 'all', jFilter: 'all',
     editingId: null, confirmTask: null, confirmEntry: null, confirmClear: false,
     form: { imp: 'med', effort: 'some', mins: 30, due: '', time: '' },
-    touched: false, guessed: false, sizeOpen: false, dateOpen: false,
+    touched: false, guessed: false, sizeOpen: false,
     entryType: 'feel', mood: 'calm', lastPrompt: '',
     focusTaskId: '', justPlanted: null, justWritten: null
   };
@@ -801,7 +830,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   function plainTask(t) {
     var due = t.due || '';
     var time = /^\d{2}:\d{2}$/.test(t.time) ? t.time : '';
-    return { id: t.id, title: String(t.title).slice(0, 140), due: due, time: time, endAt: endAtOf(due, time),
+    return { id: t.id, title: String(t.title).slice(0, 140), desc: String(t.desc || '').slice(0, 1000), due: due, time: time, endAt: endAtOf(due, time),
       imp: t.imp || 'med', mins: Number(t.mins) || 30,
       effort: t.effort || 'some', done: !!t.done, doneAt: t.doneAt || null, createdAt: t.createdAt || Date.now() };
   }
@@ -1028,6 +1057,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   /* ---------- labels ---------- */
   var EFFORT_LABEL = { easy: 'Easy', some: 'Medium', hard: 'Tough' };
   var MINS_TEXT = { 5: '5 min', 15: '15 min', 30: '30 min', 60: '1 hr', 120: '2 hrs', 240: '½ day', 480: '1 day', 1440: 'Few days' };
+  var MINS_LONG = { 5: '5 minutes', 15: '15 minutes', 30: '30 minutes', 60: '1 hour', 120: '2 hours', 240: 'half a day', 480: 'a full day', 1440: 'a few days' };
   var MIN_OPTIONS = [5, 15, 30, 60, 120, 240, 480, 1440];
   function minsText(m) { return MINS_TEXT[m] || (m + ' min'); }
   function snapMins(m) { for (var i = 0; i < MIN_OPTIONS.length; i++) { if (m <= MIN_OPTIONS[i]) return MIN_OPTIONS[i]; } return 1440; }
@@ -1229,46 +1259,55 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
 
   /* ---------- garden: form ---------- */
   var form = $('#taskForm');
+  var modal = $('#taskModal');
   var titleIn = $('#taskTitle');
+  var descIn = $('#taskDesc');
   var dueIn = $('#taskDue');
   var minsSel = $('#taskMins');
   var timeIn = $('#taskTime');
-  var QUICK_DUE = [0, 1, 7];
 
   function syncForm() {
     $$('[data-group="imp"] .pick').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.val === state.form.imp)); });
     $$('[data-group="effort"] .pick').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.val === state.form.effort)); });
     minsSel.value = String(state.form.mins);
     dueIn.value = state.form.due || '';
-    var quick = false;
-    $$('[data-due]').forEach(function (b) {
-      var on = !!state.form.due && state.form.due === addDays(Number(b.dataset.due));
-      if (on) quick = true;
-      b.setAttribute('aria-pressed', String(on));
-    });
-    var custom = !!state.form.due && !quick;
-    var dt = $('#dateToggle');
-    dt.textContent = custom ? shortDate(parseYMD(state.form.due)) : 'Date';
-    dt.classList.toggle('is-on', custom);
-    dt.setAttribute('aria-expanded', String(state.dateOpen));
-    dueIn.hidden = !state.dateOpen;
-    $('#sizeText').textContent = (state.guessed ? '≈ ' : '') + minsText(state.form.mins) + ' · ' + EFFORT_LABEL[state.form.effort].toLowerCase();
+    timeIn.value = state.form.time || '';
+    $('#whenClear').hidden = !state.form.due && !state.form.time;
+    var size = (state.guessed ? 'about ' : '') + MINS_LONG[state.form.mins] + ' · ' + EFFORT_LABEL[state.form.effort].toLowerCase() + ' effort';
+    $('#sizeText').textContent = size.charAt(0).toUpperCase() + size.slice(1);
     $('#sizeBtn').setAttribute('aria-expanded', String(state.sizeOpen));
     $('#sizePanel').hidden = !state.sizeOpen;
-    timeIn.value = state.form.time || '';
-    $('#timeClear').hidden = !state.form.time;
   }
   function resetForm() {
     state.form = { imp: 'med', effort: 'some', mins: 30, due: '', time: '' };
-    state.touched = false; state.guessed = false; state.editingId = null; state.sizeOpen = false; state.dateOpen = false;
+    state.touched = false; state.guessed = false; state.editingId = null; state.sizeOpen = false;
     titleIn.value = '';
+    descIn.value = '';
     $('#formError').textContent = '';
-    $('#titleLbl').textContent = 'New task';
-    $('#titleLbl').classList.remove('edit-label');
+    $('#modalTitle').textContent = 'Plant a new task';
     $('#plantBtn').textContent = 'Plant';
-    $('#cancelEdit').hidden = true;
     syncForm();
   }
+
+  // Browsers without <dialog> still get the form, shown in place.
+  var modalOpener = null;
+  function openModal() {
+    modalOpener = document.activeElement;
+    if (modal.showModal) { if (!modal.open) modal.showModal(); } else modal.setAttribute('open', '');
+    titleIn.focus();
+  }
+  function closeModal() {
+    if (modal.close && modal.open) modal.close(); else { modal.removeAttribute('open'); resetForm(); }
+  }
+  modal.addEventListener('close', function () {
+    resetForm();
+    if (modalOpener && modalOpener.focus && document.contains(modalOpener)) modalOpener.focus();
+    modalOpener = null;
+  });
+  // A tap on the dimmed backdrop lands on the dialog itself, outside the form.
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+  $('#addTaskBtn').addEventListener('click', function () { resetForm(); openModal(); });
+  $('#modalClose').addEventListener('click', closeModal);
   titleIn.addEventListener('input', function () {
     if (state.touched || state.editingId) return;
     var g = guess(titleIn.value);
@@ -1284,23 +1323,10 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   $$('[data-group="effort"] .pick').forEach(function (b) {
     b.addEventListener('click', function () { state.form.effort = b.dataset.val; state.touched = true; state.guessed = false; syncForm(); });
   });
-  $$('[data-due]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var val = addDays(Number(b.dataset.due));
-      state.form.due = state.form.due === val ? '' : val;
-      state.dateOpen = false;
-      syncForm();
-    });
-  });
-  $('#dateToggle').addEventListener('click', function () {
-    state.dateOpen = !state.dateOpen;
-    syncForm();
-    if (state.dateOpen) dueIn.focus();
-  });
   $('#sizeBtn').addEventListener('click', function () { state.sizeOpen = !state.sizeOpen; syncForm(); });
-  $('#cancelEdit').addEventListener('click', resetForm);
+  $('#cancelEdit').addEventListener('click', closeModal);
   timeIn.addEventListener('change', function () { state.form.time = timeIn.value; syncForm(); });
-  $('#timeClear').addEventListener('click', function () { state.form.time = ''; syncForm(); timeIn.focus(); });
+  $('#whenClear').addEventListener('click', function () { state.form.due = ''; state.form.time = ''; syncForm(); dueIn.focus(); });
 
   var BLOOM_MSGS = ['Bloomed!', 'Nice work.', 'One less thing.', 'Well done.'];
 
@@ -1316,7 +1342,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     if (!title) { $('#formError').textContent = 'Name your task first.'; titleIn.focus(); return; }
     $('#formError').textContent = '';
     var f = state.form;
-    var fields = { title: title, due: dueForTime(f.due, f.time), time: f.time, imp: f.imp, mins: f.mins, effort: f.effort };
+    var fields = { title: title, desc: descIn.value.trim(), due: dueForTime(f.due, f.time), time: f.time, imp: f.imp, mins: f.mins, effort: f.effort };
     if (state.editingId) {
       var old = state.tasks.find(function (x) { return x.id === state.editingId; });
       if (old) {
@@ -1331,23 +1357,21 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
       if (state.filter === 'done') state.filter = 'all';
       toast('Planted.');
     }
-    resetForm();
+    closeModal();
     render();
   });
 
   function startEdit(t) {
+    resetForm();
     state.editingId = t.id;
-    state.touched = true; state.guessed = false; state.sizeOpen = false;
+    state.touched = true;
     state.form = { imp: t.imp, effort: t.effort, mins: t.mins, due: t.due || '', time: t.time || '' };
-    state.dateOpen = !!t.due && !QUICK_DUE.some(function (n) { return addDays(n) === t.due; });
     titleIn.value = t.title;
-    $('#titleLbl').textContent = 'Editing';
-    $('#titleLbl').classList.add('edit-label');
+    descIn.value = t.desc || '';
+    $('#modalTitle').textContent = 'Edit task';
     $('#plantBtn').textContent = 'Save';
-    $('#cancelEdit').hidden = false;
     syncForm();
-    form.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
-    titleIn.focus({ preventScroll: true });
+    openModal();
   }
 
   /* ---------- garden: list ---------- */
@@ -1392,6 +1416,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
       (t.done ? 'Mark as not done: ' : 'Mark as done: ') + esc(t.title) + '"' + (ex ? ' disabled' : '') + '>' +
       '<svg aria-hidden="true"><use href="#f-daisy"/></svg></button>' +
       '<div class="task-main"><p class="task-title">' + esc(t.title) + '</p>' +
+      (t.desc ? '<p class="task-desc">' + esc(t.desc) + '</p>' : '') +
       '<p class="task-meta">' + (tag ? '<span class="tag tag-' + tag + '"><i></i>' + TAGS[tag] + '</span>' : '') +
       '<span>' + bits.join(' · ') + '</span></p></div>' + tail + '</li>';
   }
@@ -1409,10 +1434,26 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     spot.innerHTML = deco +
       '<p class="eyebrow">Start here' + (ex ? ' · sample' : '') + '</p>' +
       '<p class="spot-title">' + esc(top.t.title) + '</p>' +
+      (top.t.desc ? '<p class="spot-desc">' + esc(top.t.desc) + '</p>' : '') +
       '<p class="spot-meta">' + esc(parts.join(' · ')) + '</p>' +
       (ex ? '' : '<div class="spot-actions">' +
-        '<button type="button" class="btn btn-primary" data-spot="done" data-id="' + esc(top.t.id) + '">Done</button>' +
-        '<button type="button" class="btn btn-soft" data-spot="focus" data-id="' + esc(top.t.id) + '">Focus</button></div>');
+        '<button type="button" class="btn btn-primary" data-spot="focus" data-id="' + esc(top.t.id) + '">Let\'s start</button></div>');
+  }
+
+  var PRIO_GROUPS = [
+    { k: 'high', label: 'High priority', c: 'var(--urgent)' },
+    { k: 'med', label: 'Normal priority', c: 'var(--sun)' },
+    { k: 'low', label: 'Low priority', c: 'var(--leaf)' }
+  ];
+  // Open tasks under a heading per priority, each already in score order.
+  function groupedHTML(list, ex) {
+    return PRIO_GROUPS.map(function (g) {
+      var items = list.filter(function (x) { return (x.t.imp in IMP_PTS ? x.t.imp : 'med') === g.k; });
+      if (!items.length) return '';
+      return '<section class="prio-group" aria-label="' + g.label + '">' +
+        '<h2 class="prio-head" style="--c:' + g.c + '"><i></i>' + g.label + '<span class="n">' + items.length + '</span></h2>' +
+        '<ul class="task-list">' + items.map(function (x) { return taskHTML(x, ex); }).join('') + '</ul></section>';
+    }).join('');
   }
 
   var EMPTY_TEXT = {
@@ -1441,7 +1482,9 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     Object.keys(lists).forEach(function (k) { $('[data-count="' + k + '"]').textContent = lists[k].length; });
 
     var shown = lists[state.filter] || open;
-    $('#taskList').innerHTML = shown.map(function (x) { return taskHTML(x, ex); }).join('');
+    $('#taskList').innerHTML = state.filter === 'done'
+      ? '<ul class="task-list">' + shown.map(function (x) { return taskHTML(x, ex); }).join('') + '</ul>'
+      : groupedHTML(shown, ex);
     var empty = $('#emptyState');
     empty.hidden = shown.length > 0;
     if (!shown.length) {
@@ -1541,12 +1584,9 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     if (!b) return;
     var t = state.tasks.find(function (x) { return x.id === b.dataset.id; });
     if (!t) return;
-    if (b.dataset.spot === 'done') { toggleDone(t, null); burst(b); }
-    else if (b.dataset.spot === 'focus') {
-      state.focusTaskId = t.id;
-      show('focus', true);
-      window.scrollTo(0, 0);
-    }
+    state.focusTaskId = t.id;
+    show('focus', true);
+    window.scrollTo(0, 0);
   });
 
   /* ---------- focus ---------- */
@@ -1737,63 +1777,48 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   document.addEventListener('visibilitychange', function () { if (!document.hidden && timer.running) tick(); });
 
   /* ---------- background music ---------- */
-  // A soft music-box loop made with Web Audio, so there is no file to download.
+  // Loops audio/morning-cafe-jazz.mp3. It only downloads once music first plays.
   // Browsers only allow sound after a tap, so it starts on the first one (unless turned off with the button).
+  // iPhones ignore `volume`, so there it plays at the phone's own volume.
   var MUSIC_KEY = 'littlebloom.music';
-  var MUSIC_VOL = 0.07;
-  var CHORDS = [[60, 64, 67], [57, 60, 64], [53, 57, 60], [55, 59, 62]];  // C, Am, F, G as MIDI notes
-  var BAR = 3.2, STEPS = 8;  // seconds per chord, notes per chord
-  var music = { iv: null, gain: null, next: 0, step: 0, resume: false };
-  function hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
-  function note(m, t, len, vol, type) {
-    var o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = type; o.frequency.value = hz(m);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + (type === 'sine' ? 0.8 : 0.01));
-    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-    o.connect(g); g.connect(music.gain);
-    o.start(t); o.stop(t + len + 0.05);
-  }
-  // Schedules about a second ahead each time it runs, so timer jitter never makes the music stutter.
-  function scheduleMusic() {
-    while (music.next < audioCtx.currentTime + 1) {
-      var chord = CHORDS[Math.floor(music.step / STEPS) % CHORDS.length], i = music.step % STEPS, t = music.next;
-      if (i === 0) chord.forEach(function (m) { note(m - 12, t, BAR + 0.6, 0.18, 'sine'); });
-      if (i % 2 === 0 || Math.random() < 0.4) {
-        note(chord[Math.floor(Math.random() * 3)] + 12 + (Math.random() < 0.3 ? 12 : 0), t, 1.4, 0.35, 'triangle');
-      }
-      music.step++;
-      music.next += BAR / STEPS;
-    }
+  var MUSIC_SRC = 'audio/morning-cafe-jazz.mp3';
+  var MUSIC_VOL = 0.35;
+  var music = { el: null, on: false, fade: null, resume: false };
+  function fadeTo(target, ms, done) {
+    clearInterval(music.fade);
+    var el = music.el, from = el.volume, steps = Math.max(1, Math.round(ms / 50)), i = 0;
+    music.fade = setInterval(function () {
+      i++;
+      el.volume = Math.max(0, Math.min(1, from + (target - from) * (i / steps)));
+      if (i >= steps) { clearInterval(music.fade); music.fade = null; if (done) done(); }
+    }, 50);
   }
   function startMusic() {
-    ensureAudio();
-    if (!audioCtx || music.iv) return;
-    if (!music.gain) { music.gain = audioCtx.createGain(); music.gain.connect(audioCtx.destination); }
-    var now = audioCtx.currentTime;
-    music.gain.gain.cancelScheduledValues(now);
-    music.gain.gain.setValueAtTime(0.0001, now);
-    music.gain.gain.exponentialRampToValueAtTime(MUSIC_VOL, now + 2);
-    music.next = now + 0.1;
-    scheduleMusic();
-    music.iv = setInterval(scheduleMusic, 250);
+    if (music.on) return;
+    if (!music.el) {
+      music.el = new Audio(MUSIC_SRC);
+      music.el.loop = true;
+      music.el.preload = 'none';
+      music.el.addEventListener('error', function () { music.on = false; renderMusicBtn(); toast('Could not load the music.'); });
+    }
+    music.on = true;
+    music.el.volume = 0;
+    var p = music.el.play();
+    if (p && p.catch) p.catch(function () { music.on = false; renderMusicBtn(); });
+    fadeTo(MUSIC_VOL, 2000);
   }
   function stopMusic() {
-    if (!music.iv) return;
-    clearInterval(music.iv);
-    music.iv = null;
-    var now = audioCtx.currentTime;
-    music.gain.gain.cancelScheduledValues(now);
-    music.gain.gain.setValueAtTime(music.gain.gain.value, now);
-    music.gain.gain.linearRampToValueAtTime(0, now + 0.4);
+    if (!music.on) return;
+    music.on = false;
+    fadeTo(0, 400, function () { if (!music.on) music.el.pause(); });
   }
   function renderMusicBtn() {
-    var b = $('#musicBtn'), on = !!music.iv;
+    var b = $('#musicBtn'), on = music.on;
     b.setAttribute('aria-pressed', String(on));
     b.setAttribute('aria-label', on ? 'Turn music off' : 'Turn music on');
   }
   $('#musicBtn').addEventListener('click', function () {
-    if (music.iv) { stopMusic(); lsSet(MUSIC_KEY, 'off'); } else { startMusic(); lsSet(MUSIC_KEY, 'on'); }
+    if (music.on) { stopMusic(); lsSet(MUSIC_KEY, 'off'); } else { startMusic(); lsSet(MUSIC_KEY, 'on'); }
     renderMusicBtn();
   });
   function firstTap(e) {
@@ -1806,7 +1831,8 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
   document.addEventListener('keydown', firstTap, true);
   // Quiet while the app is in the background; back on when you return.
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { music.resume = !!music.iv; stopMusic(); }
+    // Background tabs throttle timers, so pause at once instead of fading.
+    if (document.hidden) { music.resume = music.on; music.on = false; clearInterval(music.fade); if (music.el) music.el.pause(); }
     else if (music.resume) { music.resume = false; startMusic(); }
     renderMusicBtn();
   });

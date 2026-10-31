@@ -21,7 +21,11 @@ var TOKEN = 'pBbsH2RBEOQh1hh1DxB5GbCEATpk';
 var SCHEMA = {
   tasks: {
     id: 'string', title: 'string', due: 'string', imp: 'string', mins: 'number',
-    effort: 'string', done: 'boolean', doneAt: 'number', createdAt: 'number'
+    effort: 'string', done: 'boolean', doneAt: 'number', createdAt: 'number',
+    // `time` is "HH:mm" on the due date; `endAt` is that moment as epoch ms, worked out on the phone.
+    // `warnedFor` is the endAt the 10-minute push was last sent for.
+    time: 'string', endAt: 'number', warnedFor: 'number',
+    desc: 'string'
   },
   entries: {
     id: 'string', type: 'string', mood: 'string', text: 'string', createdAt: 'number'
@@ -39,10 +43,12 @@ var CLIENT_KINDS = ['tasks', 'entries'];
  * 1. Firebase console → Project settings → Service accounts → Generate new private key (downloads a JSON file).
  * 2. Apps Script → Project Settings → Script properties → add FCM_SERVICE_ACCOUNT with the whole JSON file as the value.
  * 3. Project Settings → set the time zone to yours, so "due today" and the reminder hour match your day.
- * 4. Run `sendTestPush` to check, then run `installDailyReminder` once.
+ * 4. Run `sendTestPush` to check, then run `installReminders` once.
+ * Pushes go out for: the daily summary, every newly added task, and WARN_MINUTES before a task's finish time.
  */
 var APP_URL = 'https://elhadiysolution.github.io/seedsy/';  // Where the app is hosted, ending in "/", e.g. https://you.github.io/little-bloom/
 var REMINDER_HOUR = 8;   // 0–23, in the script time zone.
+var WARN_MINUTES = 10;   // How long before a task's finish time the "almost time" push goes out.
 
 /* ---------- web app entry points ---------- */
 
@@ -68,7 +74,9 @@ function doPost(e) {
       case 'upsert':
         checkKind_(body.kind);
         if (!body.item || typeof body.item.id !== 'string' || !body.item.id) return json_({ ok: false, error: 'bad_item' });
+        var isNew = rowOf_(sheet_(body.kind), body.item.id) < 0;
         upsert_(body.kind, body.item);
+        if (body.kind === 'tasks' && body.notify && isNew) tryPush_(newTaskMessage_(body.item));
         return json_({ ok: true });
       case 'delete':
         checkKind_(body.kind);
@@ -228,17 +236,61 @@ function remove_(kind, id) {
 
 /* ---------- push reminders ---------- */
 
-// Run once from the editor. Replaces any earlier reminder trigger.
-function installDailyReminder() {
+// Run once from the editor. Replaces any earlier reminder triggers.
+function installReminders() {
+  var mine = ['sendDailyReminders', 'checkEndingTasks'];
   ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (t.getHandlerFunction() === 'sendDailyReminders') ScriptApp.deleteTrigger(t);
+    if (mine.indexOf(t.getHandlerFunction()) >= 0) ScriptApp.deleteTrigger(t);
   });
   ScriptApp.newTrigger('sendDailyReminders').timeBased().everyDays(1).atHour(REMINDER_HOUR).create();
+  ScriptApp.newTrigger('checkEndingTasks').timeBased().everyMinutes(1).create();
 }
 
 function sendDailyReminders() {
   var msg = dailyMessage_();
   if (msg) pushAll_(msg.title, msg.body);
+}
+
+// Runs every minute: one push per open task whose finish time is WARN_MINUTES away or less.
+function checkEndingTasks() {
+  if (!readAll_('devices').length) return;
+  var now = Date.now();
+  var soon = readAll_('tasks').filter(function (t) {
+    return !t.done && t.endAt && t.endAt > now && t.endAt - now <= WARN_MINUTES * 60000 && t.warnedFor !== t.endAt;
+  });
+  if (!soon.length) return;
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return;  // Try again next minute.
+  try {
+    soon.forEach(function (t) {
+      var left = Math.max(1, Math.round((t.endAt - now) / 60000));
+      tryPush_({
+        title: '⏰ ' + left + (left === 1 ? ' minute' : ' minutes') + ' left',
+        body: t.title + ' · finish by ' + Utilities.formatDate(new Date(t.endAt), Session.getScriptTimeZone(), 'h:mm a')
+      });
+      // The task may have been deleted while we were sending; never re-create it.
+      if (rowOf_(sheet_('tasks'), t.id) > 0) upsert_('tasks', { id: t.id, warnedFor: t.endAt });
+    });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function newTaskMessage_(t) {
+  var tz = Session.getScriptTimeZone();
+  var when = '';
+  if (t.endAt) when = 'Finish by ' + Utilities.formatDate(new Date(t.endAt), tz, 'EEE d MMM, h:mm a');
+  else if (t.due) when = 'Due ' + Utilities.formatDate(Utilities.parseDate(t.due, tz, 'yyyy-MM-dd'), tz, 'EEE d MMM');
+  return { title: 'New task planted 🌱', body: String(t.title || '') + (when ? '\n' + when : '') };
+}
+
+// A push that fails (no devices, FCM not set up yet) must never fail the save that triggered it.
+function tryPush_(msg) {
+  try {
+    pushAll_(msg.title, msg.body);
+  } catch (err) {
+    console.warn('Push skipped: ' + (err && err.message || err));
+  }
 }
 
 // Run from the editor to check the setup. The execution log shows how many phones got it.
