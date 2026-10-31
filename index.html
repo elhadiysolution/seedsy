@@ -473,7 +473,6 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
 .wed-bar{height:14px; border-radius:999px; background:var(--surface-2); border:1px solid var(--line); overflow:hidden}
 .wed-bar i{display:block; height:100%; width:var(--p, 0%); border-radius:inherit;
   background:linear-gradient(90deg, var(--rose-light), var(--rose)); transition:width .6s ease}
-.wed-plan{margin:-6px 0 0; font-weight:700; font-size:.9rem}
 .month-card{display:grid; gap:8px; padding:16px 18px}
 .month-card.is-now{border-color:var(--rose-light)}
 .month-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
@@ -483,15 +482,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
 .month-status{margin:0; font-weight:700; font-size:.86rem; color:var(--muted)}
 .month-status.ok{color:var(--leaf-ink)}
 .month-status.short{color:var(--urgent)}
-.wed-plan em{font-style:normal; color:var(--rose)}
-.wed-plan .muted{font-weight:600}
-.wed-people{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px}
-.wed-person{display:grid; gap:2px; padding:10px 12px; border-radius:16px; background:var(--surface-2); border:1px solid var(--line); min-width:0}
-.wed-person .who{display:flex; align-items:center; gap:6px; font-weight:800; font-size:.86rem}
-.wed-person b{font-size:1.1rem; font-variant-numeric:tabular-nums}
-.wed-person small{color:var(--muted); font-weight:700}
 .who-dot{width:26px; height:26px; flex:none; display:grid; place-items:center; border-radius:50%; background:var(--c); color:#fff; font-weight:800; font-size:.78rem}
-.wed-person .who-dot{width:20px; height:20px; font-size:.66rem}
 .wed-cheer{margin:0; padding:10px 12px; border-radius:14px; background:var(--leaf-soft); font-weight:700; font-size:.88rem}
 .wed-cheer:empty{display:none}
 .wed-hist{list-style:none; margin:0; padding:0; display:grid; gap:2px}
@@ -953,7 +944,7 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
         <!-- 1. Dashboard: the ultimate goal comes from the items below, the saved amount from the monthly savings -->
         <section class="card stack wed-dash" aria-labelledby="dashLbl">
           <div class="sec-head">
-            <h2 class="sec-title" id="dashLbl">Dashboard</h2>
+            <h2 class="sec-title" id="dashLbl">Our Wedding Goals</h2>
             <div class="wed-when">
               <label class="field-label" for="wedDate">Wedding date</label>
               <input id="wedDate" type="date">
@@ -966,8 +957,6 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
             <div class="stat stat-month"><span class="stat-label">Must save each month</span><b id="statMonth">–</b><small id="statMonthSub"></small></div>
           </div>
           <div class="wed-bar" id="wedBar" role="progressbar" aria-label="Saved towards the ultimate goal" aria-valuemin="0" aria-valuemax="100"><i></i></div>
-          <p class="wed-plan" id="wedPlan"></p>
-          <div class="wed-people" id="wedPeople"></div>
         </section>
 
         <!-- 2. Items: each estimated cost adds up to the ultimate goal -->
@@ -2430,16 +2419,6 @@ textarea{resize:vertical; min-height:140px; line-height:1.5}
     var bar = $('#wedBar');
     bar.style.setProperty('--p', pct + '%');
     bar.setAttribute('aria-valuenow', String(pct));
-    $('#wedPlan').innerHTML = m.target > 0
-      ? '<em>' + pct + '%</em> of our ultimate goal saved'
-      : 'Add wedding items with their estimated cost to set your ultimate goal.';
-
-    $('#wedPeople').innerHTML = PARTNERS.map(function (pt) {
-      var own = sum(m.savings.filter(function (x) { return x.who === pt.k; }), 'amount');
-      var share = m.total > 0 ? Math.round(own / m.total * 100) : 0;
-      return '<div class="wed-person"><span class="who"><span class="who-dot" style="--c:' + pt.c + '">' + esc(pt.name.charAt(0)) + '</span>' +
-        esc(pt.name) + '</span><b>' + rm(own) + '</b><small>' + share + '% of our savings</small></div>';
-    }).join('');
   }
 
   // One card per month, newest first. This month is always shown, and is checked against the monthly amount.
